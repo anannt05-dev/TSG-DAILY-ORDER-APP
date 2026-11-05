@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Serial Griller - Smart Ordering System</title>
     
-    <!-- Open Graph / WhatsApp Preview Meta Tags -->
+    <!-- 1. Browser Tab Icon (Favicon) -->
+    <link rel="icon" type="image/png" href="tsg-appicon.png">
+
+    <!-- 2. WhatsApp / Social Media Share Preview Thumbnail (Open Graph) -->
     <meta property="og:title" content="The Serial Griller - Smart Ordering System">
     <meta property="og:description" content="Daily Store Order & Inventory Management System">
+    <meta property="og:image" content="tsg-appicon.png">
     <meta property="og:type" content="website">
 
     <style>
@@ -1217,7 +1221,7 @@
                     box.innerHTML = `
                         <div class="supplier-box" style="text-align:center; padding:20px;">
                             <h3>👍 Stock is sufficient for Fries & Wedges for next 2 days. No order needed today.</h3>
-                            <button class="btn-primary-action" onclick="markSectionComplete('fries')">Done & Go to Home Page ✅</button>
+                            <button class="btn-primary-action" onclick="markSectionComplete('fries')">Go to Home Page</button>
                         </div>
                     `;
                 } else {
