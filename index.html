@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Serial Griller - Vegetable Ordering</title>
+    <title>The Serial Griller - Daily Ordering System</title>
     <style>
         :root {
             --primary: #d32f2f;
@@ -13,6 +13,7 @@
             --text-muted: #aaa;
             --accent: #25D366;
             --warning: #ffab40;
+            --danger-bg: #3a1c1c;
         }
 
         body {
@@ -59,6 +60,27 @@
             padding: 12px;
             margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .buff-warning-card {
+            background-color: var(--danger-bg);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .buff-warning-title {
+            color: #ff8a80;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .buff-warning-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #ffccbc;
         }
 
         .item-name {
@@ -187,6 +209,7 @@
             border-radius: 6px;
             font-weight: bold;
             font-size: 0.95rem;
+            margin-bottom: 8px;
         }
 
         .back-btn {
@@ -250,20 +273,28 @@
 
     <header>
         <h1>The Serial Griller</h1>
-        <p id="day-badge">Sai Vegetables Order Form</p>
+        <p id="day-badge">Daily Order & Inventory System</p>
     </header>
 
     <div id="form-container">
+        <!-- BIG WARNING FOR BUFF IN ROMAN HINDI -->
+        <div class="buff-warning-card">
+            <div class="buff-warning-title">⚠️ ZARURI WARNING (BUFF CHECK)</div>
+            <div class="buff-warning-text">
+                Raat ko closing ke waqt fridge mein buff zaroor check karein! Agar buff se badbu aa rahi hai ya uska rang kala, grey ya green ho gaya hai, toh turant use 5 inch ring mein smash karke freeze kar dein.
+            </div>
+        </div>
+
         <div id="items-list"></div>
-        <button class="btn-calc" onclick="validateAndOpenWaiver()">Review & Generate Order 🚀</button>
+        <button class="btn-calc" onclick="validateAndOpenWaiver()">Review & Generate All Orders 🚀</button>
     </div>
 
-    <!-- Waiver Modal in Hindi (Roman) -->
+    <!-- Waiver Modal in Roman Hindi -->
     <div id="waiver-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>⚠️ Manager Declaration</h3>
             <p style="font-size: 0.95rem; line-height: 1.5; color: #fff;">
-                "Maine store ka closing stock aur Central Kitchen ki saari production requirements dhyan se check karke bhar di hain."
+                "Maine store ka closing stock, Central Kitchen aur Meat/Buff ki saari requirements dhyan se check karke bhar di hain."
             </p>
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeWaiver()">Ruko / Cancel</button>
@@ -285,92 +316,123 @@
             "🔥 Weekend Mode Active (Higher Min/Max)" : 
             "🟢 Weekday Mode Active (Standard Min/Max)";
 
-        const vegInventory = [
-            { id: 1, name: "Onions", unit: "kg", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
-            { id: 2, name: "Tomato", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 3, name: "Iceberg Lettuce fresh", unit: "kg", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
-            { id: 4, name: "Green Chilli", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 5, name: "Lemon", unit: "pcs", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
-            { id: 6, name: "Peeled Garlic", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 7, name: "Carrot", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 8, name: "Green Capsicum", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
-            { id: 9, name: "Ginger", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 10, name: "Coriander", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
-            // Central Kitchen Only / Special Items (Beetroot included)
-            { id: 11, name: "Beetroot", unit: "kg", hasStore: false, hasCK: true },
-            { id: 12, name: "Frozen Green Peas", unit: "kg", hasStore: false, hasCK: true },
-            { id: 13, name: "French Beans", unit: "kg", hasStore: false, hasCK: true },
-            { id: 14, name: "Red Chilli Fresh", unit: "kg", hasStore: false, hasCK: true }
+        // Complete Master Inventory across Vegetables, Chicken, and Buff
+        const masterInventory = [
+            // --- SECTION 1: VEGETABLES (Sai Vegetables / Vegetable TSG) ---
+            { id: 'v1', name: "Onions", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
+            { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v3', name: "Iceberg Lettuce fresh", cat: "Vegetables", unit: "kg", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
+            { id: 'v4', name: "Green Chilli", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v5', name: "Lemon", cat: "Vegetables", unit: "pcs", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
+            { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v7', name: "Carrot", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v8', name: "Green Capsicum", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
+            { id: 'v9', name: "Ginger", cat: "Vegetables", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v10', name: "Coriander", cat: "Vegetables", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
+            { id: 'v11', name: "Beetroot", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v12', name: "Frozen Green Peas", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v13', name: "French Beans", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+
+            // --- SECTION 2: CHICKEN (Marinated & Raw) ---
+            // Marinated Items
+            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "pcs", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20, rawUnit: 'kg' },
+            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20, rawUnit: 'kg' },
+            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18, rawUnit: 'kg' },
+            { id: 'c4', name: "Chicken Crunchies Coated and prepped", cat: "Chicken - Marinated", unit: "portions", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7, rawUnit: 'kg' },
+            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "pcs", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
+
+            // Raw Chicken (Non-Marinated)
+            { id: 'raw_wings', name: "RAW WINGS", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1 },
+            { id: 'raw_supreme', name: "RAW SUPREME", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1 },
+            { id: 'raw_thigh', name: "RAW THIGH BONELESS", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2 },
+            { id: 'raw_kheema', name: "CHICKEN BREAST KHEEMA", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2 },
+            { id: 'raw_popcorn', name: "CHICKEN POPCORN CUT", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2 },
+            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, isFat: true },
+
+            // --- SECTION 3: BUFF ---
+            { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "pcs", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
+            { id: 'b2', name: "Fresh Buff Patty (refridgerated)", cat: "Buff", unit: "pcs", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
         ];
 
         function renderInputs() {
             const container = document.getElementById('items-list');
-            let html = '<div class="section-title">Vegetables (Sai Vegetables Group)</div>';
+            const categories = [...new Set(masterInventory.map(item => item.cat))];
 
-            vegInventory.forEach(item => {
-                const min = isWeekendMode ? item.weMin : item.wdMin;
-                const max = isWeekendMode ? item.weMax : item.wdMax;
-                
-                let rangeText = item.hasStore ? 
-                    `Target Range: Min <span class="unit-badge">${min} ${item.isPcs ? 'PCS' : 'KG'}</span> / Max <span class="unit-badge">${max} ${item.isPcs ? 'PCS' : 'KG'}</span>` : 
-                    `Central Kitchen Production Requirement Only`;
+            let html = '';
+            categories.forEach(cat => {
+                html += `<div class="section-title">${cat}</div>`;
+                masterInventory.filter(item => item.cat === cat).forEach(item => {
+                    const min = isWeekendMode ? item.weMin : item.wdMin;
+                    const max = isWeekendMode ? item.weMax : item.wdMax;
 
-                html += `
-                    <div class="item-card">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-sub">${rangeText}</div>
-                `;
+                    html += `<div class="item-card"><div class="item-name">${item.name}</div>`;
 
-                if (item.hasStore && !item.isPcs) {
-                    html += `
-                        <div class="input-grid">
-                            <div class="input-box">
-                                <label>Store Stock (<strong style="color:var(--warning)">KG</strong>)</label>
-                                <input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="0, 1, 2..." />
-                            </div>
-                            <div class="input-box">
-                                <label>Store Stock (<strong style="color:var(--warning)">GRAMS</strong>)</label>
-                                <input type="number" min="0" step="50" max="950" id="stock-gm-${item.id}" class="item-input" placeholder="0, 500 etc." />
-                            </div>
-                        </div>
-                    `;
-                } else if (item.hasStore && item.isPcs) {
-                    html += `
-                        <div class="input-grid">
-                            <div class="input-box" style="grid-column: span 2;">
-                                <label>Store Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
-                                <input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="Enter pieces" />
-                            </div>
-                        </div>
-                    `;
-                }
+                    if (cat === "Vegetables") {
+                        let rangeText = item.hasStore ? 
+                            `Target Range: Min <span class="unit-badge">${min} ${item.isPcs ? 'PCS' : 'KG'}</span> / Max <span class="unit-badge">${max} ${item.isPcs ? 'PCS' : 'KG'}</span>` : 
+                            `Central Kitchen Production Requirement Only`;
+                        html += `<div class="item-sub">${rangeText}</div>`;
 
-                if (item.hasCK) {
-                    html += `
-                        <div style="margin-top: 6px;">
-                            <div class="input-box">
-                                <label>CK Extra Req (<strong style="color:var(--warning)">${item.isPcs ? 'PCS' : 'KG'}</strong>)</label>
-                                <input type="number" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="0 if none" />
-                            </div>
-                        </div>
-                    `;
-                }
+                        if (item.hasStore && !item.isPcs) {
+                            html += `
+                                <div class="input-grid">
+                                    <div class="input-box"><label>Store Stock (<strong style="color:var(--warning)">KG</strong>)</label><input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="0, 1, 2..." /></div>
+                                    <div class="input-box"><label>Store Stock (<strong style="color:var(--warning)">GRAMS</strong>)</label><input type="number" min="0" step="50" max="950" id="stock-gm-${item.id}" class="item-input" placeholder="0, 500 etc." /></div>
+                                </div>
+                            `;
+                        } else if (item.hasStore && item.isPcs) {
+                            html += `
+                                <div class="input-grid"><div class="input-box" style="grid-column: span 2;">
+                                    <label>Store Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
+                                    <input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="Enter pieces" />
+                                </div></div>
+                            `;
+                        }
+                        if (item.hasCK) {
+                            html += `<div style="margin-top: 6px;"><div class="input-box"><label>CK Extra Req (<strong style="color:var(--warning)">${item.isPcs ? 'PCS' : 'KG'}</strong>)</label><input type="number" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="0 if none" /></div></div>`;
+                        }
 
-                html += `</div>`;
+                    } else if (cat.startsWith("Chicken")) {
+                        html += `<div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
+                        html += `
+                            <div class="input-grid"><div class="input-box" style="grid-column: span 2;">
+                                <label>Closing Stock (${item.unit.toUpperCase()})</label>
+                                <input type="number" min="0" step="0.5" id="stock-${item.id}" class="item-input" placeholder="Enter stock" />
+                            </div></div>
+                        `;
+                    } else if (cat === "Buff") {
+                        html += `<div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
+                        html += `
+                            <div class="input-grid"><div class="input-box" style="grid-column: span 2;">
+                                <label>Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
+                                <input type="number" min="0" step="1" id="stock-${item.id}" class="item-input" placeholder="Enter pcs" />
+                            </div></div>
+                        `;
+                    }
+                    html += `</div>`;
+                });
             });
-
             container.innerHTML = html;
         }
 
         function validateAndOpenWaiver() {
-            for (let item of vegInventory) {
-                if (item.hasStore) {
-                    let kgInput = document.getElementById(`stock-kg-${item.id}`).value;
-                    if (kgInput === "") {
-                        alert(`⚠️ Missing Store Stock! Kripya is item ka stock bhariye: ${item.name}`);
-                        document.getElementById(`stock-kg-${item.id}`).focus();
-                        return;
-                    }
+            // Validate Vegetable closing stock inputs
+            for (let item of masterInventory.filter(i => i.cat === "Vegetables" && i.hasStore)) {
+                let kgInput = document.getElementById(`stock-kg-${item.id}`).value;
+                if (kgInput === "") {
+                    alert(`⚠️ Missing Store Stock! Kripya is item ka stock bhariye: ${item.name}`);
+                    document.getElementById(`stock-kg-${item.id}`).focus();
+                    return;
+                }
+            }
+            // Validate Chicken & Buff closing stock inputs
+            for (let item of masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Buff")) {
+                let val = document.getElementById(`stock-${item.id}`).value;
+                if (val === "") {
+                    alert(`⚠️ Missing Stock! Kripya is item ka stock bhariye: ${item.name}`);
+                    document.getElementById(`stock-${item.id}`).focus();
+                    return;
                 }
             }
             document.getElementById('waiver-modal').style.display = 'flex';
@@ -382,27 +444,25 @@
 
         function confirmWaiverAndGenerate() {
             closeWaiver();
-            calculateOrders();
+            calculateAllOrders();
         }
 
         function roundToNearestHalf(val) {
             return Math.ceil(val / 0.5) * 0.5;
         }
 
-        function formatQty(val, isPcs) {
+        function formatVegQty(val, isPcs) {
             if (isPcs) return Math.ceil(val) + " pcs";
-            if (val < 1) {
-                return Math.round(val * 1000) + " gm";
-            } else {
-                return val.toFixed(1).replace('.0', '') + " kg";
-            }
+            if (val < 1) return Math.round(val * 1000) + " gm";
+            return val.toFixed(1).replace('.0', '') + " kg";
         }
 
-        function calculateOrders() {
-            let orderItems = [];
-            let auditDetails = [];
+        function calculateAllOrders() {
+            // --- 1. VEGETABLES CALCULATION ---
+            let vegOrderItems = [];
+            let vegAuditDetails = [];
 
-            vegInventory.forEach(item => {
+            masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
                 let storeOrder = 0;
                 let closingStockVal = 0;
                 const min = isWeekendMode ? item.weMin : item.wdMin;
@@ -410,86 +470,241 @@
 
                 if (item.hasStore) {
                     let kgVal = parseFloat(document.getElementById(`stock-kg-${item.id}`).value) || 0;
-                    let gmVal = 0;
-                    if (!item.isPcs) {
-                        gmVal = parseFloat(document.getElementById(`stock-gm-${item.id}`).value) || 0;
-                    }
+                    let gmVal = item.isPcs ? 0 : (parseFloat(document.getElementById(`stock-gm-${item.id}`).value) || 0);
                     closingStockVal = kgVal + (gmVal / 1000);
-
-                    if (closingStockVal <= min) {
-                        storeOrder = max - closingStockVal;
-                    } else {
-                        storeOrder = 0;
-                    }
+                    storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
                 }
 
-                let ckVal = 0;
-                if (item.hasCK) {
-                    ckVal = parseFloat(document.getElementById(`ck-${item.id}`).value) || 0;
-                }
-
+                let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
                 let totalNeeded = storeOrder + ckVal;
                 let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
 
-                auditDetails.group = true; // marker
-                auditDetails.push({
+                vegAuditDetails.push({
                     name: item.name,
                     stock: item.hasStore ? (item.isPcs ? closingStockVal + " pcs" : closingStockVal + " kg") : "N/A",
                     ckReq: item.hasCK ? ckVal + (item.isPcs ? " pcs" : " kg") : "0",
-                    ordered: totalNeeded > 0 ? formatQty(finalQty, item.isPcs) : "None (Sufficient)"
+                    ordered: totalNeeded > 0 ? formatVegQty(finalQty, item.isPcs) : "None (Sufficient)"
                 });
 
                 if (totalNeeded > 0) {
-                    orderItems.push({
-                        name: item.name,
-                        formattedQty: formatQty(finalQty, item.isPcs)
-                    });
+                    vegOrderItems.push({ name: item.name, formattedQty: formatVegQty(finalQty, item.isPcs) });
                 }
             });
 
+            // --- 2. CHICKEN CALCULATION & MARINATION LOGIC ---
+            let rawStock = {};
+            masterInventory.filter(i => i.cat === "Chicken - Raw Stock").forEach(item => {
+                rawStock[item.id] = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+            });
+
+            let chickenOrderItems = [];
+            let marinateInstructions = [];
+            let chickenAuditDetails = [];
+
+            masterInventory.filter(i => i.isMarinated).forEach(item => {
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+
+                let deficit = (stock <= min) ? (max - stock) : 0;
+
+                if (deficit > 0) {
+                    if (item.isBatchPatty) {
+                        // Chicken Patty batch rule: batches of 26 pcs ($2 kg kheema + 250g fat)
+                        // If deficit requires patties, check if raw kheema (raw_kheema) is available
+                        let batchesNeeded = Math.ceil(deficit / 26);
+                        let kheemaNeededForBatches = batchesNeeded * 2; // 2 kg per batch
+                        let fatNeededForBatches = batchesNeeded * 0.25; // 250g per batch
+
+                        let availableKheema = rawStock['raw_kheema'] || 0;
+
+                        if (availableKheema >= kheemaNeededForBatches) {
+                            // Raw kheema is sufficient -> instruct staff to process/marinate
+                            rawStock['raw_kheema'] -= kheemaNeededForBatches;
+                            marinateInstructions.push(`• Marinate/Process *${kheemaNeededForBatches} kg* Raw Breast Kheema & Fat to prepare *${batchesNeeded * 26} pcs* Chicken Patty`);
+                            chickenAuditDetails.push({ name: item.name, stock: stock + " pcs", deficit: deficit + " pcs", action: `Prepared from existing raw kheema (${kheemaNeededForBatches} kg)` });
+                        } else {
+                            // Order raw kheema and fat
+                            let shortfallKheema = kheemaNeededForBatches - availableKheema;
+                            rawStock['raw_kheema'] = 0;
+                            if (shortfallKheema > 0) {
+                                chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: shortfallKheema, unit: "kg" });
+                                chickenOrderItems.push({ name: "Fat Kheema", qty: batchesNeeded * 0.25, unit: "kg" });
+                            }
+                            marinateInstructions.push(`• Order raw kheema & prepare *${batchesNeeded * 26} pcs* Chicken Patty`);
+                            chickenAuditDetails.push({ name: item.name, stock: stock + " pcs", deficit: deficit + " pcs", action: `Ordered ${shortfallKheema} kg raw kheema` });
+                        }
+                    } else {
+                        // Standard marinated items (Wings, Thigh, Supreme, Crunchies)
+                        let rawKey = item.rawKey;
+                        let yieldRate = item.yieldPerKg; // pcs or portions per kg
+                        let rawAvailable = rawStock[rawKey] || 0;
+
+                        // Calculate raw kg needed for deficit
+                        let rawKgNeeded = deficit / yieldRate;
+
+                        if (rawAvailable >= rawKgNeeded) {
+                            // Raw stock is sufficient -> instruct staff to marinate/process
+                            rawStock[rawKey] -= rawKgNeeded;
+                            let usedKgRounded = Math.ceil(rawKgNeeded * 2) / 2; // round to nearest 0.5kg
+                            marinateInstructions.push(`• Marinate/Process *${usedKgRounded} kg* ${getItemName(rawKey)} to make ~${Math.round(usedKgRounded * yieldRate)} pcs ${item.name}`);
+                            chickenAuditDetails.push({ name: item.name, stock: stock + " " + item.unit, deficit: deficit + " " + item.unit, action: `Prepared from ${usedKgRounded} kg ${getItemName(rawKey)}` });
+                        } else {
+                            // Raw stock is insufficient -> order remaining raw kg
+                            let shortfallKg = rawKgNeeded - rawAvailable;
+                            rawStock[rawKey] = 0;
+                            let orderedKg = roundToNearestHalf(shortfallKg);
+                            if (orderedKg > 0) {
+                                chickenOrderItems.push({ name: getItemName(rawKey), qty: orderedKg, unit: "kg" });
+                            }
+                            marinateInstructions.push(`• Order ${orderedKg} kg ${getItemName(rawKey)} and marinate to cover deficit`);
+                            chickenAuditDetails.push({ name: item.name, stock: stock + " " + item.unit, deficit: deficit + " " + item.unit, action: `Ordered ${orderedKg} kg ${getItemName(rawKey)}` });
+                        }
+                    }
+                } else {
+                    chickenAuditDetails.push({ name: item.name, stock: stock + " " + item.unit, deficit: "0", action: "Stock sufficient" });
+                }
+            });
+
+            // Add raw stock items that were directly ordered or fat kheema automatic addition rule
+            masterInventory.filter(i => i.cat === "Chicken - Raw Stock" && !i.isFat).forEach(item => {
+                let stock = rawStock[item.id];
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+                let rawNeeded = (stock <= min) ? (max - stock) : 0;
+                if (rawNeeded > 0) {
+                    chickenOrderItems.push({ name: item.name, qty: roundToNearestHalf(rawNeeded), unit: item.unit });
+                }
+            });
+
+            // Fat Kheema Automatic Calculation Rule: 250g for every 2kg breast kheema ordered or in stock if fat is 0
+            let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
+            let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
+            if (totalKheemaOrdered > 0 && fatStock === 0) {
+                let fatNeeded = (totalKheemaOrdered / 2) * 0.25;
+                chickenOrderItems.push({ name: "Fat Kheema", qty: fatNeeded, unit: "kg" });
+            }
+
+            // --- 3. BUFF CALCULATION ---
+            let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
+            let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
+            let totalBuff = frozenBuff + freshBuff;
+            let buffOrderNeeded = (totalBuff <= 10); // If total qty is min 10, order buff
+
+            // --- RENDER RESULTS ---
             const resultsContainer = document.getElementById('supplier-orders');
             resultsContainer.innerHTML = '';
 
-            let orderText = `*Order for The Serial Griller Lokhandwala*\n\n`;
-            if (orderItems.length === 0) {
-                orderText += `(No items required today)\n`;
+            // 1. Veg Vendor Order (Vegetable TSG)
+            let vegOrderText = `*Order for The Serial Griller Lokhandwala*\n\n`;
+            if (vegOrderItems.length === 0) {
+                vegOrderText += `(No items required today)\n`;
             } else {
-                orderItems.forEach(i => {
-                    orderText += `• ${i.name}: *${i.formattedQty}*\n`;
-                });
+                vegOrderItems.forEach(i => { vegOrderText += `• ${i.name}: *${i.formattedQty}*\n`; });
             }
-            const vendorWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(orderText)}`;
+            const vegWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(vegOrderText)}`;
 
-            let auditText = `📋 *MANAGER AUDIT COPY - VEG ORDER*\n`;
-            auditText += `Date: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
-            auditDetails.forEach(ad => {
-                if (ad.name) {
-                    auditText += `• *${ad.name}*\n  Stock: ${ad.stock} | CK Req: ${ad.ckReq} ➡️ Order: *${ad.ordered}*\n`;
-                }
+            let vegAuditText = `📋 *MANAGER AUDIT COPY - VEG ORDER*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
+            vegAuditDetails.forEach(ad => {
+                vegAuditText += `• *${ad.name}*\n  Stock: ${ad.stock} | CK Req: ${ad.ckReq} ➡️ Order: *${ad.ordered}*\n`;
             });
-            auditText += `\n_Verified & Submitted by Manager._`;
-            const auditWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(auditText)}`;
+            vegAuditText += `\n_Verified & Submitted by Manager._`;
+            const vegAuditUrl = `https://wa.me/?text=${encodeURIComponent(vegAuditText)}`;
 
-            resultsContainer.innerHTML = `
+            resultsContainer.innerHTML += `
                 <div class="supplier-box">
-                    <div class="supplier-title">📦 1. Send Order to Sai Vegetables</div>
-                    <div class="order-list">${orderText}</div>
+                    <div class="supplier-title">📦 1. Send Order to Vegetable TSG</div>
+                    <div class="order-list">${vegOrderText}</div>
                     <div class="instruction-text">
                         👉 <strong>Kaise bhejein:</strong> "Send Vendor Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>VEGETABLE TSG</strong> search karo aur jab group aa jaye toh wahan message send kar do.
                     </div>
-                    <a href="${vendorWhatsappUrl}" target="_blank" class="btn-whatsapp">Send Vendor Order via WhatsApp</a>
+                    <a href="${vegWhatsappUrl}" target="_blank" class="btn-whatsapp">Send Vendor Order via WhatsApp</a>
                 </div>
-
                 <div class="supplier-box" style="border-color: #3f51b5;">
-                    <div class="supplier-title" style="color: #7986cb;">📋 2. Manager Audit Counter-Copy (Internal)</div>
-                    <div class="order-list">${auditText}</div>
-                    <a href="${auditWhatsappUrl}" target="_blank" class="btn-audit">Send Audit Copy to Management Group</a>
+                    <div class="supplier-title" style="color: #7986cb;">📋 2. Manager Audit Copy - Veg</div>
+                    <div class="instruction-text" style="border-left-color: #7986cb; color: #9fa8da;">
+                        👉 <strong>Kaise bhejein:</strong> Neeche wala message TSG-coordination group par send kar do.
+                    </div>
+                    <div class="order-list">${vegAuditText}</div>
+                    <a href="${vegAuditUrl}" target="_blank" class="btn-audit">Send Audit Copy to Management Group</a>
+                </div>
+            `;
+
+            // 2. Chicken Vendor Order & Coordination Marination Message
+            let chickenVendorText = `*Order for The Serial Griller Lokhandwala*\n\n`;
+            // Group duplicate items if any
+            let consolidatedChicken = {};
+            chickenOrderItems.forEach(i => {
+                consolidatedChicken[i.name] = (consolidatedChicken[i.name] || 0) + i.qty;
+            });
+
+            let chickenItemsList = [];
+            for (const [name, qty] of Object.entries(consolidatedChicken)) {
+                chickenItemsList.push(`• ${name}: *${qty} kg*`);
+            }
+
+            if (chickenItemsList.length === 0) {
+                chickenVendorText += `(No raw chicken items required today - sufficient stock)\n`;
+            } else {
+                chickenVendorText += chickenItemsList.join('\n') + '\n';
+            }
+            const chickenVendorUrl = `https://wa.me/?text=${encodeURIComponent(chickenVendorText)}`;
+
+            let coordText = `📋 *CHICKEN MARINATION & PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n`;
+            if (marinateInstructions.length === 0) {
+                coordText += `• All marinated items are at par level. No marination needed tonight.`;
+            } else {
+                coordText += marinateInstructions.join('\n');
+            }
+            const coordUrl = `https://wa.me/?text=${encodeURIComponent(coordText)}`;
+
+            resultsContainer.innerHTML += `
+                <div class="supplier-box">
+                    <div class="supplier-title">🍗 3. Send Order to "Chicken - serial griller"</div>
+                    <div class="order-list">${chickenVendorText}</div>
+                    <div class="instruction-text">
+                        👉 <strong>Kaise bhejein:</strong> "Send Chicken Order via WhatsApp" par click karo, aur WhatsApp par <strong>Chicken - serial griller</strong> group mein bhej do.
+                    </div>
+                    <a href="${chickenVendorUrl}" target="_blank" class="btn-whatsapp">Send Chicken Order via WhatsApp</a>
+                </div>
+                <div class="supplier-box" style="border-color: #ff9800;">
+                    <div class="supplier-title" style="color: #ffb74d;">🔪 4. Send Marination Prep to TSG-coordination</div>
+                    <div class="order-list">${coordText}</div>
+                    <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">
+                        👉 <strong>Kaise bhejein:</strong> Yeh instruction message <strong>TSG-coordination</strong> group par bhejo taaki staff raw chicken ko process/marinate kar sake.
+                    </div>
+                    <a href="${coordUrl}" target="_blank" class="btn-whatsapp" style="background-color: #ff9800;">Send Marination Prep to TSG-coordination</a>
+                </div>
+            `;
+
+            // 3. Buff Order & Warning
+            let buffOrderText = `*Order for The Serial Griller Lokhandwala*\n\n`;
+            if (buffOrderNeeded) {
+                buffOrderText += `• Veal Kheema PINK Fresh and NO smell Not frozen: *2 kg*\n`;
+            } else {
+                buffOrderText += `(Buff stock sufficient, total qty > 10 pcs)\n`;
+            }
+            const buffVendorUrl = `https://wa.me/?text=${encodeURIComponent(buffOrderText)}`;
+
+            resultsContainer.innerHTML += `
+                <div class="supplier-box">
+                    <div class="supplier-title">🥩 5. Send Order to "TSG beef order"</div>
+                    <div class="order-list">${buffOrderText}</div>
+                    <div class="instruction-text">
+                        👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG beef order</strong> group mein send karo.
+                    </div>
+                    <a href="${buffVendorUrl}" target="_blank" class="btn-whatsapp">Send Buff Order via WhatsApp</a>
                 </div>
             `;
 
             document.getElementById('form-container').style.display = 'none';
             document.getElementById('results-tab').style.display = 'block';
             window.scrollTo(0,0);
+        }
+
+        function getItemName(id) {
+            let item = masterInventory.find(i => i.id === id);
+            return item ? item.name : id;
         }
 
         function goBackToEdit() {
