@@ -165,7 +165,7 @@
             background: #2a2a2a;
             color: #fff;
             text-align: center;
-            font-size: 1rem; /* Prevents auto-zoom on iOS */
+            font-size: 1rem;
             box-sizing: border-box;
         }
 
@@ -468,9 +468,10 @@
             "🔥 Weekend Mode Active (Higher Min/Max)" : 
             "🟢 Weekday Mode Active (Standard Min/Max)";
 
+        // Regular Sesame Bun Min: Weekday 60, Weekend 80 (60 + 20)
         function getMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
-            return wknd ? 75 : 50;
+            return wknd ? 80 : 60;
         }
 
         const masterInventory = [
