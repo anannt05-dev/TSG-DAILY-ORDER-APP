@@ -322,7 +322,7 @@
             <p style="font-size: 0.85rem; color: #aaa;">Manager: Complete sections one by one to unlock master submission.</p>
         </div>
 
-        <div id="card-veg" class="dash-card" onclick="openSection('veg-section')">
+        <div id="card-veg" class="dash-card" onclick="handleCardClick('veg')">
             <div>
                 <div class="dash-title">🥗 Vegetables & Central Kitchen</div>
                 <div class="dash-sub">Sai Vegetables / Vegetable TSG</div>
@@ -330,7 +330,7 @@
             <div id="status-veg" style="font-size: 1.2rem;">➡️</div>
         </div>
 
-        <div id="card-chicken" class="dash-card" onclick="openSection('chicken-section')">
+        <div id="card-chicken" class="dash-card" onclick="handleCardClick('chicken')">
             <div>
                 <div class="dash-title">🍗 Poultry (Chicken & Eggs)</div>
                 <div class="dash-sub">Marinated, Raw, Eggs & Marination Prep</div>
@@ -338,7 +338,7 @@
             <div id="status-chicken" style="font-size: 1.2rem;">➡️</div>
         </div>
 
-        <div id="card-buff" class="dash-card" onclick="openSection('buff-section')">
+        <div id="card-buff" class="dash-card" onclick="handleCardClick('buff')">
             <div>
                 <div class="dash-title">🥩 Buff Section</div>
                 <div class="dash-sub">Frozen & Fresh Buff Patty, Veal Kheema</div>
@@ -389,6 +389,20 @@
     <div id="results-tab" class="results-container">
         <button class="btn-nav" onclick="goHome()" style="width: 100%; margin-bottom: 20px;">⬅ Back to Dashboard</button>
         <div id="section-result-box"></div>
+    </div>
+
+    <!-- RESET WARNING MODAL (ROMAN HINDI) -->
+    <div id="reset-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>⚠️ Form Pehle Hi Bhara Ja Chuka Hai</h3>
+            <p id="reset-modal-text" style="font-size: 0.95rem; line-height: 1.5; color: #fff;">
+                Aap yeh form pehle hi bhar chuke hain. Kya aap isko dobara reset karke bharna chahte hain, ya wapas jana chahte hain?
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeResetModal()">Wapas Jao</button>
+                <button class="modal-btn btn-confirm" onclick="confirmResetSection()">Haan, Reset Karo</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -523,6 +537,33 @@
             buffCont.innerHTML = buffHtml;
 
             updateDashboardStatus();
+        }
+
+        // --- GREEN SECTION CLICK & RESET WARNING LOGIC ---
+        let pendingSectionKey = '';
+
+        function handleCardClick(sectionKey) {
+            let isDone = localStorage.getItem(`status_${sectionKey}`) === 'true';
+            if (isDone) {
+                pendingSectionKey = sectionKey;
+                document.getElementById('reset-modal').style.display = 'flex';
+            } else {
+                openSection(`${sectionKey}-section`);
+            }
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').style.display = 'none';
+            pendingSectionKey = '';
+        }
+
+        function confirmResetSection() {
+            if (pendingSectionKey) {
+                localStorage.setItem(`status_${pendingSectionKey}`, 'false');
+                let sectionId = `${pendingSectionKey}-section`;
+                closeResetModal();
+                openSection(sectionId);
+            }
         }
 
         function openSection(sectionId) {
@@ -683,9 +724,8 @@
                                 rawStock['raw_kheema'] = 0;
                                 if (shortfall > 0) {
                                     chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: Math.ceil(shortfall), unit: "kg" });
-                                    chickenOrderItems.push({ name: "Fat Kheema", qty: batchesNeeded * 0.25, unit: "kg" });
                                 }
-                                marinateInstructions.push(`• Order raw kheema & prepare *${batchesNeeded * 26} pcs* Chicken Patty`);
+                                marinateInstructions.push(`• Raw Breast Kheema aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
                             }
                         } else {
                             let rawKey = item.rawKey;
@@ -705,7 +745,7 @@
                                 if (orderedKg > 0) {
                                     chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
                                 }
-                                marinateInstructions.push(`• Order ${orderedKg} kg ${rawItemObj.name} and marinate to cover deficit`);
+                                marinateInstructions.push(`• Raw ${rawItemObj.name} rakha hai fridge me, marinate kar dena usko.`);
                             }
                         }
                     }
@@ -724,8 +764,8 @@
                 let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 if (totalKheemaOrdered > 0 && fatStock === 0) {
-                    let fatNeeded = (totalKheemaOrdered / 2) * 0.25;
-                    chickenOrderItems.push({ name: "FAT KHEEMA", qty: Math.ceil(fatNeeded), unit: "kg" });
+                    // Fat kheema needed in 250 grams for restaurant use
+                    chickenOrderItems.push({ name: "FAT KHEEMA", qty: 0.25, unit: "kg", isFatFormatted: "250 gm" });
                 }
 
                 let eggsStock = parseFloat(document.getElementById(`stock-eggs`).value) || 0;
@@ -734,13 +774,15 @@
 
                 let consolidatedChicken = {};
                 chickenOrderItems.forEach(i => {
-                    if (!consolidatedChicken[i.name]) consolidatedChicken[i.name] = { qty: 0, isThigh: i.isThigh };
+                    if (!consolidatedChicken[i.name]) consolidatedChicken[i.name] = { qty: 0, isThigh: i.isThigh, isFatFormatted: i.isFatFormatted };
                     consolidatedChicken[i.name].qty += i.qty;
                 });
 
                 let chickenItemsList = [];
                 for (const [name, data] of Object.entries(consolidatedChicken)) {
-                    if (data.isThigh) {
+                    if (data.isFatFormatted) {
+                        chickenItemsList.push(`• ${name}: *${data.isFatFormatted}*`);
+                    } else if (data.isThigh) {
                         chickenItemsList.push(`• ${name}: *${data.qty} kg* (${data.qty * 10} pcs of 100g proper weight proper size: ${data.qty} kg = ${data.qty * 10} pcs)`);
                     } else {
                         chickenItemsList.push(`• ${name}: *${data.qty} kg*`);
@@ -779,7 +821,7 @@
                         htmlContent += `
                             <div class="supplier-box" style="border-color: #ff9800;">
                                 <div class="supplier-title" style="color: #ffb74d;">🔪 SEND THIS TO TSG COORDINATION GROUP</div>
-                                <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">👉 <strong>Kaise bhejein:</strong> Yeh instruction message <strong>TSG-coordination</strong> group par bhejo.</div>
+                                <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">👉 <strong>Kaise bhejein:</strong> Yeh instruction message <strong>TSG-coordination</strong> group par bhejo taaki staff ko pata chale kya marinate karna hai.</div>
                                 <div class="order-list">${coordText}</div>
                                 <a href="${coordUrl}" target="_blank" class="btn-whatsapp" style="background-color: #ff9800;">Send Prep to TSG-coordination</a>
                             </div>
@@ -836,7 +878,7 @@
             goHome();
         }
 
-        // --- MASTER AUDIT LOG GENERATION ---
+        // --- MASTER AUDIT LOG GENERATION (FIXED BLANK SCREEN BUG) ---
         function generateMasterAuditLog() {
             let resultsContainer = document.getElementById('section-result-box');
             resultsContainer.innerHTML = '';
@@ -895,7 +937,7 @@
 
             document.getElementById('home-dashboard').style.display = 'none';
             document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            resultsContainer.style.display = 'block';
+            document.getElementById('results-tab').style.display = 'block';
             window.scrollTo(0,0);
         }
 
