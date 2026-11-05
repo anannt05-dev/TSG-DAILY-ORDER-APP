@@ -296,7 +296,7 @@
             { id: 8, name: "Green Capsicum", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
             { id: 9, name: "Ginger", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
             { id: 10, name: "Coriander", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
-            // Central Kitchen Only / Special Items (Beetroot moved here)
+            // Central Kitchen Only / Special Items (Beetroot included)
             { id: 11, name: "Beetroot", unit: "kg", hasStore: false, hasCK: true },
             { id: 12, name: "Frozen Green Peas", unit: "kg", hasStore: false, hasCK: true },
             { id: 13, name: "French Beans", unit: "kg", hasStore: false, hasCK: true },
@@ -431,6 +431,7 @@
                 let totalNeeded = storeOrder + ckVal;
                 let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
 
+                auditDetails.group = true; // marker
                 auditDetails.push({
                     name: item.name,
                     stock: item.hasStore ? (item.isPcs ? closingStockVal + " pcs" : closingStockVal + " kg") : "N/A",
@@ -462,7 +463,9 @@
             let auditText = `📋 *MANAGER AUDIT COPY - VEG ORDER*\n`;
             auditText += `Date: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
             auditDetails.forEach(ad => {
-                auditText += `• *${ad.name}*\n  Stock: ${ad.stock} | CK Req: ${ad.ckReq} ➡️ Order: *${ad.ordered}*\n`;
+                if (ad.name) {
+                    auditText += `• *${ad.name}*\n  Stock: ${ad.stock} | CK Req: ${ad.ckReq} ➡️ Order: *${ad.ordered}*\n`;
+                }
             });
             auditText += `\n_Verified & Submitted by Manager._`;
             const auditWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(auditText)}`;
@@ -472,7 +475,7 @@
                     <div class="supplier-title">📦 1. Send Order to Sai Vegetables</div>
                     <div class="order-list">${orderText}</div>
                     <div class="instruction-text">
-                        👉 <strong>Kaise bhejein:</strong> "Send Vendor Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>SAI VEGETABLES</strong> search karo aur jab group aa jaye toh wahan message send kar do.
+                        👉 <strong>Kaise bhejein:</strong> "Send Vendor Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>VEGETABLE TSG</strong> search karo aur jab group aa jaye toh wahan message send kar do.
                     </div>
                     <a href="${vendorWhatsappUrl}" target="_blank" class="btn-whatsapp">Send Vendor Order via WhatsApp</a>
                 </div>
