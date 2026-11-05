@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Serial Griller - Daily Ordering App</title>
+    <title>The Serial Griller - Vegetable Ordering</title>
     <style>
         :root {
             --primary: #d32f2f;
@@ -12,6 +12,7 @@
             --text: #ffffff;
             --text-muted: #aaa;
             --accent: #25D366;
+            --warning: #ffab40;
         }
 
         body {
@@ -20,7 +21,7 @@
             color: var(--text);
             margin: 0;
             padding: 12px;
-            padding-bottom: 80px;
+            padding-bottom: 90px;
         }
 
         header {
@@ -35,18 +36,18 @@
             font-size: 1.4rem;
             color: var(--primary);
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         header p {
             margin: 4px 0 0 0;
             font-size: 0.85rem;
-            color: var(--text-muted);
+            color: var(--warning);
+            font-weight: bold;
         }
 
         .section-title {
             font-size: 1.1rem;
-            margin: 16px 0 8px 0;
+            margin: 20px 0 8px 0;
             color: #ff8a80;
             border-left: 4px solid var(--primary);
             padding-left: 8px;
@@ -55,37 +56,46 @@
         .item-card {
             background-color: var(--card-bg);
             border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .item-info {
-            flex: 1;
         }
 
         .item-name {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            margin-bottom: 4px;
         }
 
         .item-sub {
             font-size: 0.75rem;
             color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .input-box label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 2px;
         }
 
         .item-input {
-            width: 80px;
-            padding: 6px;
+            width: 100%;
+            padding: 8px;
             border-radius: 4px;
             border: 1px solid #444;
             background: #2a2a2a;
             color: #fff;
-            text-align: right;
-            font-size: 0.9rem;
+            text-align: center;
+            font-size: 0.95rem;
+            box-sizing: border-box;
         }
 
         .btn-calc {
@@ -121,7 +131,7 @@
         .supplier-title {
             font-size: 1rem;
             font-weight: bold;
-            color: #ffab40;
+            color: var(--warning);
             margin-bottom: 8px;
         }
 
@@ -130,8 +140,9 @@
             margin-bottom: 10px;
             white-space: pre-line;
             background: #121212;
-            padding: 8px;
+            padding: 10px;
             border-radius: 4px;
+            border: 1px solid #222;
         }
 
         .btn-whatsapp {
@@ -140,32 +151,22 @@
             text-decoration: none;
             display: block;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
-        .tab-nav {
-            display: flex;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #333;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: none;
+        .back-btn {
+            background: #444;
+            color: white;
             border: none;
-            color: var(--text-muted);
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
             font-weight: bold;
-            font-size: 0.9rem;
+            margin-bottom: 20px;
             cursor: pointer;
-        }
-
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
         }
     </style>
 </head>
@@ -173,105 +174,137 @@
 
     <header>
         <h1>The Serial Griller</h1>
-        <p>Daily Inventory & Vendor Order Assistant</p>
+        <p id="day-badge">Sai Vegetables Order Form</p>
     </header>
 
-    <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('inventory')">1. Enter Stock</button>
-        <button class="tab-btn" onclick="switchTab('orders')">2. Send WhatsApp Orders</button>
-    </div>
-
-    <div id="inventory-tab">
+    <div id="form-container">
         <div id="items-list"></div>
-        <button class="btn-calc" onclick="calculateOrders()">Calculate & Generate Orders</button>
+        <button class="btn-calc" onclick="calculateOrders()">Generate Sai Vegetables Order 🚀</button>
     </div>
 
-    <div id="orders-tab" class="results-container">
+    <div id="results-tab" class="results-container">
+        <button class="back-btn" onclick="goBackToEdit()">⬅ Edit Numbers</button>
         <div id="supplier-orders"></div>
     </div>
 
     <script>
-        const inventoryData = [
-            { id: 1, name: "Onion", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 10 },
-            { id: 2, name: "Tomato", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 6 },
-            { id: 3, name: "Iceberg Lettuce", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 5 },
-            { id: 4, name: "Curly Lettuce", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 2 },
-            { id: 5, name: "Green Capsicum", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 3 },
-            { id: 6, name: "Green Chilli", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 2 },
-            { id: 7, name: "Lemon (Nimbu)", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "pcs", par: 20 },
-            { id: 8, name: "Garlic", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 3 },
-            { id: 9, name: "Carrot", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 2 },
-            { id: 10, name: "Ginger", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 2 },
-            { id: 11, name: "Coriander (Dhaniya)", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "bundle", par: 3 },
-            { id: 12, name: "Beetroot", category: "Vegetables", supplier: "HyperPure / Sai Vegetables", unit: "kg", par: 3 },
+        // Check if Weekend (Fri, Sat, Sun closing)
+        const todayDay = new Date().getDay();
+        const isWeekendMode = (todayDay === 5 || todayDay === 6 || todayDay === 0);
 
-            { id: 13, name: "Chicken Wings", category: "Meat & Poultry", supplier: "United Poultry / Hyper", unit: "kg", par: 10 },
-            { id: 14, name: "Thigh Boneless", category: "Meat & Poultry", supplier: "United Poultry / Hyper", unit: "kg", par: 10 },
-            { id: 15, name: "Boneless Breast", category: "Meat & Poultry", supplier: "United Poultry / Hyper", unit: "kg", par: 10 },
-            { id: 16, name: "Chicken Kheema", category: "Meat & Poultry", supplier: "United Poultry / Hyper", unit: "kg", par: 5 },
-            { id: 17, name: "Raw Buff", category: "Meat & Poultry", supplier: "Monis", unit: "pcs", par: 30 },
+        document.getElementById('day-badge').innerText = isWeekendMode ? 
+            "🔥 Weekend Mode Active (Higher Min/Max)" : 
+            "🟢 Weekday Mode Active (Standard Min/Max)";
 
-            { id: 18, name: "Multi Grain Bun", category: "Breads", supplier: "Pantree", unit: "pcs", par: 40 },
-            { id: 19, name: "Regular Bun", category: "Breads", supplier: "Pantree", unit: "pcs", par: 40 },
-            { id: 20, name: "Garlic Bread", category: "Breads", supplier: "Pantree / Cookwell", unit: "pkt", par: 10 },
-            { id: 21, name: "Brown Bread", category: "Breads", supplier: "Cookwell", unit: "pkt", par: 10 },
-
-            { id: 22, name: "Fries", category: "Fries & Frozen", supplier: "Elite / Archana / Hyfun", unit: "pkt", par: 10 },
-            { id: 23, name: "Wedges", category: "Fries & Frozen", supplier: "Elite / Archana / Hyfun", unit: "pkt", par: 8 },
-            { id: 24, name: "Eggs", category: "Toppings & Dairy", supplier: "HyperPure", unit: "pcs", par: 30 },
-            { id: 25, name: "Nashville Paneer", category: "Toppings & Dairy", supplier: "HyperPure", unit: "kg", par: 5 }
+        // Sai Vegetables Master List (Store Min/Max + Central Kitchen Extra Support)
+        const vegInventory = [
+            { id: 1, name: "Onions", unit: "kg", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
+            { id: 2, name: "Tomato", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 3, name: "Iceberg Lettuce fresh", unit: "kg", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
+            { id: 4, name: "Green Chilli", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 5, name: "Lemon", unit: "pcs", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
+            { id: 6, name: "Peeled Garlic", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 7, name: "Carrot", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 8, name: "Green Capsicum", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
+            { id: 9, name: "Ginger", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 10, name: "Coriander", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
+            { id: 11, name: "Beetroot", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            // Central Kitchen Only / Special Items
+            { id: 12, name: "Frozen Green Peas", unit: "kg", hasStore: false, hasCK: true },
+            { id: 13, name: "French Beans", unit: "kg", hasStore: false, hasCK: true },
+            { id: 14, name: "Red Chilli Fresh", unit: "kg", hasStore: false, hasCK: true }
         ];
 
         function renderInputs() {
             const container = document.getElementById('items-list');
-            const categories = [...new Set(inventoryData.map(item => item.category))];
+            let html = '<div class="section-title">Vegetables (Sai Vegetables Group)</div>';
 
-            let html = '';
-            categories.forEach(cat => {
-                html += `<div class="section-title">${cat}</div>`;
-                inventoryData.filter(item => item.category === cat).forEach(item => {
+            vegInventory.forEach(item => {
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+                
+                let rangeText = item.hasStore ? `Target Range: Min ${item.isPcs ? min+' pcs' : min+'kg'} / Max ${item.isPcs ? max+' pcs' : max+'kg'}` : `Central Kitchen Production Requirement Only`;
+
+                html += `
+                    <div class="item-card">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-sub">${rangeText}</div>
+                        <div class="input-grid">
+                `;
+
+                if (item.hasStore) {
                     html += `
-                        <div class="item-card">
-                            <div class="item-info">
-                                <div class="item-name">${item.name}</div>
-                                <div class="item-sub">Target: ${item.par} ${item.unit} | ${item.supplier}</div>
-                            </div>
-                            <input type="number" step="0.1" id="item-${item.id}" class="item-input" placeholder="Stock (${item.unit})" />
+                        <div class="input-box">
+                            <label>Store Closing Stock</label>
+                            <input type="number" step="0.1" id="stock-${item.id}" class="item-input" placeholder="Enter stock" />
                         </div>
                     `;
-                });
+                }
+
+                if (item.hasCK) {
+                    html += `
+                        <div class="input-box" ${!item.hasStore ? 'style="grid-column: span 2;"' : ''}>
+                            <label>CK Extra Req (${item.isPcs ? 'pcs' : 'kg'})</label>
+                            <input type="number" step="0.1" id="ck-${item.id}" class="item-input" placeholder="Extra for production" />
+                        </div>
+                    `;
+                }
+
+                html += `</div></div>`;
             });
+
             container.innerHTML = html;
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            if (tab === 'inventory') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('inventory-tab').style.display = 'block';
-                document.getElementById('orders-tab').style.display = 'none';
+        function roundToNearestHalf(val) {
+            return Math.ceil(val / 0.5) * 0.5;
+        }
+
+        function formatQty(val, isPcs) {
+            if (isPcs) return Math.ceil(val) + " pcs";
+            if (val < 1) {
+                return Math.round(val * 1000) + " gm";
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('inventory-tab').style.display = 'none';
-                document.getElementById('orders-tab').style.display = 'block';
+                return val.toFixed(1).replace('.0', '') + " kg";
             }
         }
 
         function calculateOrders() {
-            const supplierOrders = {};
+            let orderItems = [];
 
-            inventoryData.forEach(item => {
-                const inputVal = parseFloat(document.getElementById(`item-${item.id}`).value) || 0;
-                const qtyNeeded = item.par - inputVal;
+            vegInventory.forEach(item => {
+                let storeOrder = 0;
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
 
-                if (qtyNeeded > 0) {
-                    if (!supplierOrders[item.supplier]) {
-                        supplierOrders[item.supplier] = [];
+                // 1. Store Replenishment Calculation
+                if (item.hasStore) {
+                    const stockVal = document.getElementById(`stock-${item.id}`).value;
+                    if (stockVal !== "") {
+                        const closingStock = parseFloat(stockVal) || 0;
+                        if (closingStock <= min) {
+                            storeOrder = max - closingStock;
+                        } else {
+                            storeOrder = 0; // If stock is above minimum, order nothing from store side
+                        }
                     }
-                    supplierOrders[item.supplier].push({
+                }
+
+                // 2. Central Kitchen Extra Requirement
+                let ckVal = 0;
+                if (item.hasCK) {
+                    const ckInput = document.getElementById(`ck-${item.id}`).value;
+                    ckVal = parseFloat(ckInput) || 0;
+                }
+
+                // Total needed before rounding
+                let totalNeeded = storeOrder + ckVal;
+
+                if (totalNeeded > 0) {
+                    let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
+                    orderItems.push({
                         name: item.name,
-                        qty: qtyNeeded.toFixed(1).replace('.0', ''),
-                        unit: item.unit
+                        formattedQty: formatQty(finalQty, item.isPcs)
                     });
                 }
             });
@@ -279,33 +312,38 @@
             const resultsContainer = document.getElementById('supplier-orders');
             resultsContainer.innerHTML = '';
 
-            if (Object.keys(supplierOrders).length === 0) {
+            if (orderItems.length === 0) {
                 resultsContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #4caf50;">
-                    <h3>Sab Stock Full Hai! 👍</h3>
-                    <p>Aaj koi order bhejne ki zaroorat nahi hai.</p>
+                    <h3>Koi Order Zaroori Nahi Hai! 👍</h3>
+                    <p>Sabhi vegetables ka stock sufficient hai aur koi extra requirement nahi hai.</p>
                 </div>`;
             } else {
-                for (const [supplier, items] of Object.entries(supplierOrders)) {
-                    let orderTextHindi = `Namaste! *The Serial Griller* se aaj ka order:\n\n`;
-                    items.forEach(i => {
-                        orderTextHindi += `• ${i.name}: *${i.qty} ${i.unit}*\n`;
-                    });
-                    orderTextHindi += `\nKripya karke isko jaldi deliver karwa dijiye. Dhanyawad!`;
+                let orderText = `Namaste ji! *The Serial Griller* se aaj ka Vegetable order:\n\n`;
+                orderItems.forEach(i => {
+                    orderText += `• ${i.name}: *${i.formattedQty}*\n`;
+                });
+                orderText += `\nKripya time par dispatch karwa dein. Dhanyawad!`;
 
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(orderTextHindi)}`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(orderText)}`;
 
-                    const box = document.createElement('div');
-                    box.className = 'supplier-box';
-                    box.innerHTML = `
-                        <div class="supplier-title">📍 Supplier: ${supplier}</div>
-                        <div class="order-list">${orderTextHindi}</div>
-                        <a href="${whatsappUrl}" target="_blank" class="btn-whatsapp">Send Order via WhatsApp</a>
-                    `;
-                    resultsContainer.appendChild(box);
-                }
+                resultsContainer.innerHTML = `
+                    <div class="supplier-box">
+                        <div class="supplier-title">📦 Vendor: Sai Vegetables WhatsApp Group</div>
+                        <div class="order-list">${orderText}</div>
+                        <a href="${whatsappUrl}" target="_blank" class="btn-whatsapp">Send WhatsApp to Sai Vegetables</a>
+                    </div>
+                `;
             }
 
-            switchTab('orders');
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('results-tab').style.display = 'block';
+            window.scrollTo(0,0);
+        }
+
+        function goBackToEdit() {
+            document.getElementById('form-container').style.display = 'block';
+            document.getElementById('results-tab').style.display = 'none';
+            window.scrollTo(0,0);
         }
 
         renderInputs();
