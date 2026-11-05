@@ -65,6 +65,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .dash-card:hover {
@@ -337,4 +338,136 @@
                 <div class="dash-title">🍗 Meat & Poultry (Chicken)</div>
                 <div class="dash-sub">Marinated, Raw, Eggs & Marination Prep</div>
             </div>
-            <div style
+            <div style="font-size: 1.2rem;">➡️</div>
+        </div>
+
+        <div class="dash-card" onclick="openSection('buff-section')">
+            <div>
+                <div class="dash-title">🥩 Buff Section</div>
+                <div class="dash-sub">Frozen & Fresh Buff Patty, Veal Kheema</div>
+            </div>
+            <div style="font-size: 1.2rem;">➡️</div>
+        </div>
+
+        <button class="btn-primary-action" onclick="validateAndOpenWaiver()">Review & Generate All Orders 🚀</button>
+    </div>
+
+    <!-- 1. VEGETABLES VIEW -->
+    <div id="veg-section" class="category-view">
+        <div class="section-title">Vegetables & Central Kitchen</div>
+        <div id="veg-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- 2. CHICKEN VIEW -->
+    <div id="chicken-section" class="category-view">
+        <div class="section-title">Meat & Poultry (Chicken & Eggs)</div>
+        <div id="chicken-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- 3. BUFF VIEW -->
+    <div id="buff-section" class="category-view">
+        <div class="buff-warning-card">
+            <div class="buff-warning-title">⚠️ ZARURI WARNING (BUFF CHECK)</div>
+            <div class="buff-warning-text">
+                Raat ko closing ke waqt fridge mein buff zaroor check karein! Agar buff se badbu aa rahi hai ya uska rang kala, grey ya green ho gaya hai, toh turant use 5 inch ring mein smash karke freeze kar dein.
+            </div>
+        </div>
+        <div class="section-title">Buff Section</div>
+        <div id="buff-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Waiver Modal in Roman Hindi -->
+    <div id="waiver-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>⚠️ Manager Declaration</h3>
+            <p style="font-size: 0.95rem; line-height: 1.5; color: #fff;">
+                "Maine store ka closing stock, Central Kitchen aur Meat/Buff ki saari requirements dhyan se check karke bhar di hain."
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeWaiver()">Ruko / Cancel</button>
+                <button class="modal-btn btn-confirm" onclick="confirmWaiverAndGenerate()">Haan, Aage Badho</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS TAB -->
+    <div id="results-tab" class="results-container">
+        <button class="btn-nav" onclick="goHome()" style="width: 100%; margin-bottom: 20px;">⬅ Back to Dashboard / Edit</button>
+        <div id="supplier-orders"></div>
+    </div>
+
+    <script>
+        const todayDay = new Date().getDay();
+        const isWeekendMode = (todayDay === 5 || todayDay === 6 || todayDay === 0);
+
+        document.getElementById('day-badge').innerText = isWeekendMode ? 
+            "🔥 Weekend Mode Active (Higher Min/Max)" : 
+            "🟢 Weekday Mode Active (Standard Min/Max)";
+
+        const masterInventory = [
+            // --- VEGETABLES ---
+            { id: 'v1', name: "Onions", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
+            { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v3', name: "Iceberg Lettuce fresh", cat: "Vegetables", unit: "kg", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
+            { id: 'v4', name: "Green Chilli", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v5', name: "Lemon", cat: "Vegetables", unit: "pcs", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
+            { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v7', name: "Carrot", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v8', name: "Green Capsicum", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
+            { id: 'v9', name: "Ginger", cat: "Vegetables", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v10', name: "Coriander", cat: "Vegetables", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
+            { id: 'v11', name: "Beetroot", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v12', name: "Frozen Green Peas", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v13', name: "French Beans", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+
+            // --- CHICKEN & EGGS ---
+            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "pcs", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
+            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20 },
+            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
+            { id: 'c4', name: "Chicken Crunchies Coated and prepped", cat: "Chicken - Marinated", unit: "portions", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
+            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "pcs", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
+
+            { id: 'raw_wings', name: "RAW WINGS", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "WINGS" },
+            { id: 'raw_supreme', name: "RAW SUPREME", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "SUPREME" },
+            { id: 'raw_thigh', name: "RAW THIGH BONELESS", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "THIGH BONELESS", isThigh: true },
+            { id: 'raw_kheema', name: "CHICKEN BREAST KHEEMA", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN BREAST KHEEMA" },
+            { id: 'raw_popcorn', name: "CHICKEN POPCORN CUT", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN POPCORN CUT" },
+            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, isFat: true, vendorName: "FAT KHEEMA" },
+
+            { id: 'eggs', name: "Eggs", cat: "Eggs", unit: "pcs", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
+
+            // --- BUFF ---
+            { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "pcs", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
+            { id: 'b2', name: "Fresh Buff Patty (refridgerated)", cat: "Buff", unit: "pcs", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
+        ];
+
+        function renderInputs() {
+            const vegCont = document.getElementById('veg-inputs-list');
+            let vegHtml = '';
+            masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+                let rangeText = item.hasStore ? 
+                    `Target Range: Min <span class="unit-badge">${min}${item.isPcs ? 'PCS' : 'KG'}</span> / Max <span class="unit-badge">${max}${item.isPcs ? 'PCS' : 'KG'}</span>` : 
+                    `Central Kitchen Production Requirement Only`;
+
+                vegHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${rangeText}</div>`;
+                if (item.hasStore && !item.isPcs) {
+                    vegHtml += `
+                        <div class="input-grid">
+                            <div class="input-box"><label>Store Stock (<strong style="color:var(--warning)">KG</strong>)</label><input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="0, 1, 2..." /></div>
+                            <div class="input-box"><label>Store Stock (<strong style="color:var(--warning)">GRAMS</strong>)</label><input type="number" min="0" step="50" max="950" id="stock-gm-${item.id}" class="item-input" placeholder="0, 500 etc." /></div>
+                        </div>
+                    `;
+                } else if (item.hasStore && item.isPcs) {
+                    vegHtml += `<div class="input-grid"><div class="input-box" style="grid-column: span 2;"><label>Store Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label><input type="number" min="0" step="1" id="stock-kg
