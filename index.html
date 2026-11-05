@@ -23,7 +23,7 @@
             color: var(--text);
             margin: 0;
             padding: 12px;
-            padding-bottom: 120px; /* Extra space for mobile keyboard */
+            padding-bottom: 120px;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -358,6 +358,22 @@
             <div id="status-buns" style="font-size: 1.2rem;">➡️</div>
         </div>
 
+        <div id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
+            <div>
+                <div class="dash-title">🍟 Fries & Wedges Order</div>
+                <div class="dash-sub">TSG Hyfun Fries (2-Day Lookahead)</div>
+            </div>
+            <div id="status-fries" style="font-size: 1.2rem;">➡️</div>
+        </div>
+
+        <div id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
+            <div>
+                <div class="dash-title">🔪 In-House Prep (Tangles & Sticks)</div>
+                <div class="dash-sub">Onion Tangles & Mozzarella Sticks Pre-Prep</div>
+            </div>
+            <div id="status-prep" style="font-size: 1.2rem;">➡️</div>
+        </div>
+
         <button id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
     </div>
 
@@ -404,6 +420,26 @@
         <div class="nav-buttons">
             <button class="btn-nav" onclick="goHome()">⬅ Back</button>
             <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('buns')">Generate Buns Order 🚀</button>
+        </div>
+    </div>
+
+    <!-- 5. FRIES & WEDGES VIEW -->
+    <div id="fries-section" class="category-view">
+        <div class="section-title">Fries & Wedges Order (TSG Hyfun Fries)</div>
+        <div id="fries-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
+            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('fries')">Generate Fries Order 🚀</button>
+        </div>
+    </div>
+
+    <!-- 6. IN-HOUSE PREP VIEW -->
+    <div id="prep-section" class="category-view">
+        <div class="section-title">In-House Prep (Tangles & Sticks)</div>
+        <div id="prep-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
+            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('prep')">Generate Prep Instructions 🚀</button>
         </div>
     </div>
 
@@ -460,6 +496,8 @@
             localStorage.setItem('status_chicken', 'false');
             localStorage.setItem('status_buff', 'false');
             localStorage.setItem('status_buns', 'false');
+            localStorage.setItem('status_fries', 'false');
+            localStorage.setItem('status_prep', 'false');
         }
 
         const todayDay = new Date().getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
@@ -469,9 +507,20 @@
             "🟢 Weekday Mode Active (Standard Min/Max)";
 
         // Regular Sesame Bun Min: Weekday 60, Weekend 80 (60 + 20)
-        function getMinForDay(dayIndex) {
+        function getSesameMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
             return wknd ? 80 : 60;
+        }
+
+        // Fries Min: Weekday 2 pkt, Weekend 3 pkt
+        function getFriesMinForDay(dayIndex) {
+            let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
+            return wknd ? 3 : 2;
+        }
+
+        // Wedges Min: 1 pkt (all days)
+        function getWedgesMinForDay(dayIndex) {
+            return 1;
         }
 
         const masterInventory = [
@@ -594,8 +643,8 @@
             const bunsCont = document.getElementById('buns-inputs-list');
             let lastSesameBunOrder = localStorage.getItem('tsg_last_sesame_bun_order') || 0;
             let lastMultiBunOrder = localStorage.getItem('tsg_last_multi_bun_order') || 0;
-            let minToday = getMinForDay(todayDay);
-            let minTomorrow = getMinForDay((todayDay + 1) % 7);
+            let minToday = getSesameMinForDay(todayDay);
+            let minTomorrow = getSesameMinForDay((todayDay + 1) % 7);
 
             bunsCont.innerHTML = `
                 <div class="item-card">
@@ -625,6 +674,82 @@
                             <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
                             <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-multi" class="item-input" value="${lastMultiBunOrder}" placeholder="Enter pending delivery in **PCS**" />
                         </div>
+                    </div>
+                </div>
+            `;
+
+            // Fries & Wedges Orders
+            const friesCont = document.getElementById('fries-inputs-list');
+            let lastFriesOrder = localStorage.getItem('tsg_last_fries_order') || 0;
+            let lastWedgesOrder = localStorage.getItem('tsg_last_wedges_order') || 0;
+            let friesMinToday = getFriesMinForDay(todayDay);
+            let friesMinTomorrow = getFriesMinForDay((todayDay + 1) % 7);
+            let wedgesMinToday = getWedgesMinForDay(todayDay);
+            let wedgesMinTomorrow = getWedgesMinForDay((todayDay + 1) % 7);
+
+            friesCont.innerHTML = `
+                <div class="item-card">
+                    <div class="item-name">Fries (TSG Hyfun Fries)</div>
+                    <div class="item-sub">Rule: MOQ 1 Box = 5 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Today Min: ${friesMinToday} pkt, Tomorrow Min: ${friesMinTomorrow} pkt)</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-fries-pkt" class="item-input" placeholder="Full packets" />
+                        </div>
+                        <div class="input-box">
+                            <label>Open Packet Remaining Weight (<strong style="color:var(--warning)">KG</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" max="2.5" step="any" id="stock-fries-kg" class="item-input" placeholder="Kg (e.g. 1.5)" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-fries" class="item-input" value="${lastFriesOrder}" placeholder="Pending pkts" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Wedges (TSG Hyfun Fries)</div>
+                    <div class="item-sub">Rule: MOQ 2 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Today Min: ${wedgesMinToday} pkt, Tomorrow Min: ${wedgesMinTomorrow} pkt)</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-wedges-pkt" class="item-input" placeholder="Full packets" />
+                        </div>
+                        <div class="input-box">
+                            <label>Open Packet Remaining Weight (<strong style="color:var(--warning)">KG</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" max="2.5" step="any" id="stock-wedges-kg" class="item-input" placeholder="Kg (e.g. 1)" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-wedges" class="item-input" value="${lastWedgesOrder}" placeholder="Pending pkts" />
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // In-House Prep (Onion Tangles & Mozzarella Sticks)
+            const prepCont = document.getElementById('prep-inputs-list');
+            let otMin = isWeekendMode ? 7 : 5;
+            let otMax = isWeekendMode ? 14 : 10;
+            let msMin = isWeekendMode ? 10 : 8;
+            let msMax = isWeekendMode ? 20 : 15;
+
+            prepCont.innerHTML = `
+                <div class="item-card">
+                    <div class="item-name">Onion Tangles</div>
+                    <div class="item-sub">Target Range: Min <span class="unit-badge">${otMin} portions</span> / Max <span class="unit-badge">${otMax} portions</span></div>
+                    <div class="input-box">
+                        <label>Closing Stock in <strong style="color:var(--warning)">Portions</strong></label>
+                        <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-onion-tangles" class="item-input" placeholder="Enter stock in portions" />
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Mozzarella Sticks</div>
+                    <div class="item-sub">Target Range: Min <span class="unit-badge">${msMin} portions</span> / Max <span class="unit-badge">${msMax} portions</span> | Pre-prep Trigger: <= 10 portions</div>
+                    <div class="input-box">
+                        <label>Closing Stock in <strong style="color:var(--warning)">Portions</strong></label>
+                        <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-mozzarella-sticks" class="item-input" placeholder="Enter stock in portions" />
                     </div>
                 </div>
             `;
@@ -679,14 +804,18 @@
             let chickDone = localStorage.getItem('status_chicken') === 'true';
             let buffDone = localStorage.getItem('status_buff') === 'true';
             let bunsDone = localStorage.getItem('status_buns') === 'true';
+            let friesDone = localStorage.getItem('status_fries') === 'true';
+            let prepDone = localStorage.getItem('status_prep') === 'true';
 
             setCardStatus('card-veg', 'status-veg', vegDone);
             setCardStatus('card-chicken', 'status-chicken', chickDone);
             setCardStatus('card-buff', 'status-buff', buffDone);
             setCardStatus('card-buns', 'status-buns', bunsDone);
+            setCardStatus('card-fries', 'status-fries', friesDone);
+            setCardStatus('card-prep', 'status-prep', prepDone);
 
             let btn = document.getElementById('btn-master-submit');
-            if (vegDone && chickDone && buffDone && bunsDone) {
+            if (vegDone && chickDone && buffDone && bunsDone && friesDone && prepDone) {
                 btn.style.opacity = '1';
                 btn.style.pointerEvents = 'auto';
             } else {
@@ -981,8 +1110,8 @@
                 }
 
                 let totalSesameAvailable = sesameStock + sesamePending;
-                let minToday = getMinForDay(todayDay);
-                let minTomorrow = getMinForDay((todayDay + 1) % 7);
+                let minToday = getSesameMinForDay(todayDay);
+                let minTomorrow = getSesameMinForDay((todayDay + 1) % 7);
                 let twoDayMin = minToday + minTomorrow;
 
                 let sesameShortfall = twoDayMin - totalSesameAvailable;
@@ -1020,7 +1149,7 @@
 
                     box.innerHTML = `
                         <div class="supplier-box">
-                            <div class="supplier-title">🍞 Send Order for Buns</div>
+                            <div class="supplier-title">🍞 Send Order to "🍔🍔THE SERIAL GRILLER 🍔🥪"</div>
                             <div class="instruction-text">
                                 👉 <strong>Regular Sesame Bun:</strong> Available (${totalSesameAvailable}) vs 2-Day Min Req (${twoDayMin}) -> Order: <strong>${sesameOrderQty} pcs</strong> (MOQ 40).<br>
                                 👉 <strong>Multigrain Bun:</strong> Available (${totalMultiAvailable}) -> Order: <strong>${multiOrderQty} pcs</strong> (MOQ 30).<br>
@@ -1029,6 +1158,138 @@
                             <div class="order-list">${bunsOrderText}</div>
                             <a href="${bunsWhatsappUrl}" class="btn-whatsapp">Send Buns Order via WhatsApp</a>
                             <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                }
+
+            } else if (sectionName === 'fries') {
+                let friesPkt = parseFloat(document.getElementById('stock-fries-pkt').value);
+                let friesKg = parseFloat(document.getElementById('stock-fries-kg').value) || 0;
+                let friesPending = parseFloat(document.getElementById('pending-delivery-fries').value) || 0;
+
+                if (isNaN(friesPkt)) {
+                    alert("⚠️ Fries closing stock enter karna zaroori hai!");
+                    document.getElementById('stock-fries-pkt').focus();
+                    return;
+                }
+
+                let totalFriesKg = (friesPkt * 2.5) + friesKg;
+                let totalFriesPkts = totalFriesKg / 2.5;
+                let totalFriesAvailable = totalFriesPkts + friesPending;
+
+                let friesMinToday = getFriesMinForDay(todayDay);
+                let friesMinTomorrow = getFriesMinForDay((todayDay + 1) % 7);
+                let friesTwoDayMin = friesMinToday + friesMinTomorrow;
+
+                let friesShortfall = friesTwoDayMin - totalFriesAvailable;
+                // MOQ for Fries is 1 box = 5 pkts
+                let friesOrderQty = friesShortfall > 0 ? Math.ceil(friesShortfall / 5) * 5 : 0;
+                if (friesShortfall > 0 && friesOrderQty < 5) friesOrderQty = 5;
+                localStorage.setItem('tsg_last_fries_order', friesOrderQty);
+
+                let wedgesPkt = parseFloat(document.getElementById('stock-wedges-pkt').value);
+                let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg').value) || 0;
+                let wedgesPending = parseFloat(document.getElementById('pending-delivery-wedges').value) || 0;
+
+                if (isNaN(wedgesPkt)) {
+                    alert("⚠️ Wedges closing stock enter karna zaroori hai!");
+                    document.getElementById('stock-wedges-pkt').focus();
+                    return;
+                }
+
+                let totalWedgesKg = (wedgesPkt * 2.5) + wedgesKg;
+                let totalWedgesPkts = totalWedgesKg / 2.5;
+                let totalWedgesAvailable = totalWedgesPkts + wedgesPending;
+
+                let wedgesMinToday = getWedgesMinForDay(todayDay);
+                let wedgesMinTomorrow = getWedgesMinForDay((todayDay + 1) % 7);
+                let wedgesTwoDayMin = wedgesMinToday + wedgesMinTomorrow;
+
+                let wedgesShortfall = wedgesTwoDayMin - totalWedgesAvailable;
+                // MOQ for Wedges is 2 pkts
+                let wedgesOrderQty = wedgesShortfall > 0 ? Math.max(Math.ceil(wedgesShortfall / 2) * 2, 2) : 0;
+                localStorage.setItem('tsg_last_wedges_order', wedgesOrderQty);
+
+                let friesOrderList = [];
+                if (friesOrderQty > 0) friesOrderList.push(`• Fries: *${friesOrderQty} pkts* (${friesOrderQty/5} box)`);
+                if (wedgesOrderQty > 0) friesOrderList.push(`• Wedges: *${wedgesOrderQty} pkts*`);
+
+                if (friesOrderList.length === 0) {
+                    box.innerHTML = `
+                        <div class="supplier-box" style="text-align:center; padding:20px;">
+                            <h3>👍 Stock is sufficient for Fries & Wedges for next 2 days. No order needed today.</h3>
+                            <button class="btn-primary-action" onclick="markSectionComplete('fries')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                } else {
+                    let friesOrderText = `*Order for The Serial Griller Lokhandwala*\n\n` + friesOrderList.join('\n') + `\n\nKripya karke isko jaldi deliver karwa dijiye. Dhanyawad!`;
+                    let friesWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(friesOrderText)}`;
+
+                    box.innerHTML = `
+                        <div class="supplier-box">
+                            <div class="supplier-title">🍟 Send Order to "TSG hyfun fries"</div>
+                            <div class="instruction-text">
+                                👉 <strong>Fries:</strong> Available (${totalFriesAvailable.toFixed(1)} pkts) vs 2-Day Min (${friesTwoDayMin}) -> Order: <strong>${friesOrderQty} pkts</strong> (MOQ 1 Box = 5 pkts).<br>
+                                👉 <strong>Wedges:</strong> Available (${totalWedgesAvailable.toFixed(1)} pkts) vs 2-Day Min (${wedgesTwoDayMin}) -> Order: <strong>${wedgesOrderQty} pkts</strong> (MOQ 2 pkts).<br>
+                                💾 <em>Note:</em> Orders saved to memory for tomorrow's pending delivery check.
+                            </div>
+                            <div class="order-list">${friesOrderText}</div>
+                            <a href="${friesWhatsappUrl}" class="btn-whatsapp">Send Fries Order via WhatsApp</a>
+                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('fries')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                }
+
+            } else if (sectionName === 'prep') {
+                let otStock = parseFloat(document.getElementById('stock-onion-tangles').value);
+                let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks').value);
+
+                if (isNaN(otStock) || isNaN(msStock)) {
+                    alert("⚠️ Sabhi in-house items ka stock enter karna zaroori hai!");
+                    return;
+                }
+
+                let otMin = isWeekendMode ? 7 : 5;
+                let otMax = isWeekendMode ? 14 : 10;
+                let msMin = isWeekendMode ? 10 : 8;
+                let msMax = isWeekendMode ? 20 : 15;
+
+                let otNeeded = (otStock <= otMin) ? (otMax - otStock) : 0;
+                let msNeeded = (msStock <= msMin) ? (msMax - msStock) : 0;
+
+                let prepInstructions = [];
+                if (otNeeded > 0) {
+                    prepInstructions.push(`• Onion Tangles: Stock low hai (${otStock} portions). Kripya naye *${Math.ceil(otNeeded)} portions* Onion Tangles bana dein.`);
+                }
+                if (msNeeded > 0) {
+                    prepInstructions.push(`• Mozzarella Sticks: Stock low hai (${msStock} portions). Kripya naye *${Math.ceil(msNeeded)} portions* Mozzarella Sticks bana dein.`);
+                }
+
+                // Mozzarella block pre-prep trigger if <= 10 portions
+                if (msStock <= 10) {
+                    prepInstructions.push(`⚠️ *Mozzarella Pre-Prep:* Mozzarella block ko freezer se nikaal kar fridge mein rakh dein taaki woh soft ho jaye aur cut karne mein asani ho.`);
+                }
+
+                if (prepInstructions.length === 0) {
+                    box.innerHTML = `
+                        <div class="supplier-box" style="text-align:center; padding:20px;">
+                            <h3>👍 Onion Tangles aur Mozzarella Sticks ka stock sufficient hai. Koi prep ki zaroorat nahi hai.</h3>
+                            <button class="btn-primary-action" onclick="markSectionComplete('prep')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                } else {
+                    let prepText = `📋 *IN-HOUSE PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n` + prepInstructions.join('\n\n');
+                    let prepWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(prepText)}`;
+
+                    box.innerHTML = `
+                        <div class="supplier-box" style="border-color: #ff9800;">
+                            <div class="supplier-title" style="color: #ffb74d;">🔪 Send Instructions to "TSG-coordination"</div>
+                            <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">
+                                👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG-coordination</strong> group mein send karein taaki staff prep aur pre-prep (mozzarella defrost) shuru kar sake.
+                            </div>
+                            <div class="order-list">${prepText}</div>
+                            <a href="${prepWhatsappUrl}" class="btn-whatsapp" style="background-color: #ff9800;">Send Prep to TSG-coordination</a>
+                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('prep')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
                 }
@@ -1051,6 +1312,7 @@
 
             let masterAuditLines = [];
 
+            // Veg
             masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
                 let storeOrder = 0;
                 let closingStockVal = 0;
@@ -1071,20 +1333,23 @@
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stockStr} | CK Req: ${ckVal} | Order: *${orderedStr}*`);
             });
 
+            // Chicken & Eggs
             masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
                 let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
             });
 
+            // Buff
             let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
             let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
             masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
             masterAuditLines.push(`• *Fresh Buff Patty* | Stock: ${freshBuff} pcs`);
 
+            // Buns Orders Audit
             let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value) || 0;
             let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
             let sesameTotal = sesameStock + sesamePending;
-            let twoDayMin = getMinForDay(todayDay) + getMinForDay((todayDay + 1) % 7);
+            let twoDayMin = getSesameMinForDay(todayDay) + getSesameMinForDay((todayDay + 1) % 7);
             let sesameShortfall = twoDayMin - sesameTotal;
             let sesameAuditOrder = sesameShortfall > 0 ? Math.max(sesameShortfall, 40) : 0;
             masterAuditLines.push(`• *Regular Sesame Bun* | Stock: ${sesameStock} pcs | Pending: ${sesamePending} pcs | Order: *${sesameAuditOrder > 0 ? sesameAuditOrder + ' pcs' : 'Sufficient'}*`);
@@ -1095,6 +1360,31 @@
             let multiNeeded = (multiTotal <= 6) ? (30 - multiTotal) : 0;
             let multiAuditOrder = multiNeeded > 0 ? Math.max(multiNeeded, 30) : 0;
             masterAuditLines.push(`• *Multigrain Bun* | Stock: ${multiStock} pcs | Pending: ${multiPending} pcs | Order: *${multiAuditOrder > 0 ? multiAuditOrder + ' pcs' : 'Sufficient'}*`);
+
+            // Fries & Wedges Audit
+            let friesPkt = parseFloat(document.getElementById('stock-fries-pkt').value) || 0;
+            let friesKg = parseFloat(document.getElementById('stock-fries-kg').value) || 0;
+            let friesPending = parseFloat(document.getElementById('pending-delivery-fries').value) || 0;
+            let friesTotal = (friesPkt * 2.5 + friesKg) / 2.5 + friesPending;
+            let friesTwoDayMin = getFriesMinForDay(todayDay) + getFriesMinForDay((todayDay + 1) % 7);
+            let friesShort = friesTwoDayMin - friesTotal;
+            let friesAuditOrder = friesShort > 0 ? Math.max(Math.ceil(friesShort / 5) * 5, 5) : 0;
+            masterAuditLines.push(`• *Fries* | Stock: ${friesPkt} pkt ${friesKg}kg | Pending: ${friesPending} pkt | Order: *${friesAuditOrder > 0 ? friesAuditOrder + ' pkts' : 'Sufficient'}*`);
+
+            let wedgesPkt = parseFloat(document.getElementById('stock-wedges-pkt').value) || 0;
+            let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg').value) || 0;
+            let wedgesPending = parseFloat(document.getElementById('pending-delivery-wedges').value) || 0;
+            let wedgesTotal = (wedgesPkt * 2.5 + wedgesKg) / 2.5 + wedgesPending;
+            let wedgesTwoDayMin = getWedgesMinForDay(todayDay) + getWedgesMinForDay((todayDay + 1) % 7);
+            let wedgesShort = wedgesTwoDayMin - wedgesTotal;
+            let wedgesAuditOrder = wedgesShort > 0 ? Math.max(Math.ceil(wedgesShort / 2) * 2, 2) : 0;
+            masterAuditLines.push(`• *Wedges* | Stock: ${wedgesPkt} pkt ${wedgesKg}kg | Pending: ${wedgesPending} pkt | Order: *${wedgesAuditOrder > 0 ? wedgesAuditOrder + ' pkts' : 'Sufficient'}*`);
+
+            // Prep Audit
+            let otStock = parseFloat(document.getElementById('stock-onion-tangles').value) || 0;
+            let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks').value) || 0;
+            masterAuditLines.push(`• *Onion Tangles* | Stock: ${otStock} portions`);
+            masterAuditLines.push(`• *Mozzarella Sticks* | Stock: ${msStock} portions ${msStock <= 10 ? '(⚠️ Block Defrost Triggered)' : ''}`);
 
             let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
             masterLogText += masterAuditLines.join('\n');
