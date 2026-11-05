@@ -395,7 +395,7 @@
     <div id="reset-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>⚠️ Form Pehle Hi Bhara Ja Chuka Hai</h3>
-            <p id="reset-modal-text" style="font-size: 0.95rem; line-height: 1.5; color: #fff;">
+            <p style="font-size: 0.95rem; line-height: 1.5; color: #fff;">
                 Aap yeh form pehle hi bhar chuke hain. Kya aap isko dobara reset karke bharna chahte hain, ya wapas jana chahte hain?
             </p>
             <div class="modal-buttons">
@@ -764,7 +764,6 @@
                 let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 if (totalKheemaOrdered > 0 && fatStock === 0) {
-                    // Fat kheema needed in 250 grams for restaurant use
                     chickenOrderItems.push({ name: "FAT KHEEMA", qty: 0.25, unit: "kg", isFatFormatted: "250 gm" });
                 }
 
@@ -878,7 +877,7 @@
             goHome();
         }
 
-        // --- MASTER AUDIT LOG GENERATION (FIXED BLANK SCREEN BUG) ---
+        // --- MASTER AUDIT LOG GENERATION ---
         function generateMasterAuditLog() {
             let resultsContainer = document.getElementById('section-result-box');
             resultsContainer.innerHTML = '';
@@ -937,7 +936,7 @@
 
             document.getElementById('home-dashboard').style.display = 'none';
             document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            document.getElementById('results-tab').style.display = 'block';
+            resultsContainer.style.display = 'block';
             window.scrollTo(0,0);
         }
 
