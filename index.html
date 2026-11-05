@@ -384,6 +384,14 @@
             <div id="status-prep" style="font-size: 1.2rem;">➡️</div>
         </div>
 
+        <div id="card-sauces" class="dash-card" onclick="handleCardClick('sauces')">
+            <div>
+                <div class="dash-title">🏺 Sauces Section</div>
+                <div class="dash-sub">Egg Mayo, Garlic Toum, Ex-Sauce & Tomato Salsa</div>
+            </div>
+            <div id="status-sauces" style="font-size: 1.2rem;">➡️</div>
+        </div>
+
         <button id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
     </div>
 
@@ -453,6 +461,22 @@
         </div>
     </div>
 
+    <!-- 7. SAUCES VIEW -->
+    <div id="sauces-section" class="category-view">
+        <div class="buff-warning-card" style="border-color: var(--warning); background: #2a2517;">
+            <div class="buff-warning-title" style="color: var(--warning);">⚠️ ZAROORI SOOCHANA (SAUCE BOTTLE CHECK)</div>
+            <div class="buff-warning-text" style="color: #ffe0b2;">
+                Agar Egg mayo aur Garlic mayo ko sauce bottle mein bhara jata hai, toh yeh dhyan rahe ki aapke paas back up mein kam se kam 1 kg extra zaroor hona chahiye.
+            </div>
+        </div>
+        <div class="section-title">Sauces Section</div>
+        <div id="sauces-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
+            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('sauces')">Generate Sauces Status 🚀</button>
+        </div>
+    </div>
+
     <!-- RESULTS TAB FOR SECTIONS / MASTER LOG -->
     <div id="results-tab" class="results-container">
         <button class="btn-nav" onclick="goHome()" style="width: 100%; margin-bottom: 20px;">⬅ Back to Dashboard</button>
@@ -508,6 +532,7 @@
             localStorage.setItem('status_buns', 'false');
             localStorage.setItem('status_fries', 'false');
             localStorage.setItem('status_prep', 'false');
+            localStorage.setItem('status_sauces', 'false');
         }
 
         const todayDay = new Date().getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
@@ -565,7 +590,13 @@
 
             // --- BUFF ---
             { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "PCS", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
-            { id: 'b2', name: "Fresh Buff Patty (Refrigerated)", cat: "Buff", unit: "PCS", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
+            { id: 'b2', name: "Fresh Buff Patty (Refrigerated)", cat: "Buff", unit: "PCS", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true },
+
+            // --- SAUCES ---
+            { id: 's1', name: "Egg Mayo", cat: "Sauces", unit: "KG", minVal: 1, hasBottleNote: true },
+            { id: 's2', name: "Garlic Toum", cat: "Sauces", unit: "KG", minVal: 1, hasBottleNote: true },
+            { id: 's3', name: "Ex-Sauce", cat: "Sauces", unit: "GRAM", minVal: 150, maxVal: 300 },
+            { id: 's4', name: "Tomato Salsa", cat: "Sauces", unit: "GM", minVal: 180, maxVal: 500 }
         ];
 
         function renderInputs() {
@@ -761,6 +792,29 @@
                 </div>
             `;
 
+            // Sauces Section Inputs
+            const saucesCont = document.getElementById('sauces-inputs-list');
+            let saucesHtml = '';
+            masterInventory.filter(i => i.cat === "Sauces").forEach(item => {
+                let subText = item.hasBottleNote ? 
+                    `Requirement: Min <span class="unit-badge">${item.minVal} ${item.unit}</span> (Backup bottle rule applies)` : 
+                    `Target Range: Min <span class="unit-badge">${item.minVal} ${item.unit}</span> / Max <span class="unit-badge">${item.maxVal} ${item.unit}</span>`;
+
+                saucesHtml += `
+                    <div class="item-card">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-sub">${subText}</div>
+                        <div class="input-grid">
+                            <div class="input-box">
+                                <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong></label>
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            saucesCont.innerHTML = saucesHtml;
+
             updateDashboardStatus();
         }
 
@@ -813,6 +867,7 @@
             let bunsDone = localStorage.getItem('status_buns') === 'true';
             let friesDone = localStorage.getItem('status_fries') === 'true';
             let prepDone = localStorage.getItem('status_prep') === 'true';
+            let saucesDone = localStorage.getItem('status_sauces') === 'true';
 
             setCardStatus('card-veg', 'status-veg', vegDone);
             setCardStatus('card-chicken', 'status-chicken', chickDone);
@@ -820,9 +875,10 @@
             setCardStatus('card-buns', 'status-buns', bunsDone);
             setCardStatus('card-fries', 'status-fries', friesDone);
             setCardStatus('card-prep', 'status-prep', prepDone);
+            setCardStatus('card-sauces', 'status-sauces', saucesDone);
 
             let btn = document.getElementById('btn-master-submit');
-            if (vegDone && chickDone && buffDone && bunsDone && friesDone && prepDone) {
+            if (vegDone && chickDone && buffDone && bunsDone && friesDone && prepDone && saucesDone) {
                 btn.style.opacity = '1';
                 btn.style.pointerEvents = 'auto';
             } else {
@@ -1295,6 +1351,46 @@
                         </div>
                     `;
                 }
+
+            } else if (sectionName === 'sauces') {
+                for (let item of masterInventory.filter(i => i.cat === "Sauces")) {
+                    let valInput = document.getElementById(`stock-${item.id}`);
+                    if (valInput.value === "") {
+                        alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
+                        valInput.focus();
+                        return;
+                    }
+                }
+
+                let saucesStatusLines = [];
+                masterInventory.filter(i => i.cat === "Sauces").forEach(item => {
+                    let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    if (item.hasBottleNote) {
+                        let statusNote = stock < item.minVal ? "⚠️ LOW! (Backup check required)" : "✅ Sufficient";
+                        saucesStatusLines.push(`• ${item.name}: *${stock} ${item.unit}* - ${statusNote}`);
+                    } else {
+                        let statusNote = stock < item.minVal ? "⚠️ LOW!" : "✅ Sufficient";
+                        saucesStatusLines.push(`• ${item.name}: *${stock} ${item.unit}* (Min: ${item.minVal}, Max: ${item.maxVal}) - ${statusNote}`);
+                    }
+                });
+
+                let saucesReportText = `🏺 *SAUCES STATUS & INVENTORY REPORT*\nDate: ${new Date().toLocaleDateString()}\n\n` + 
+                    `⚠️ *Zaroori Soochana:* Agar Egg mayo aur Garlic mayo ko sauce bottle mein bhara jata hai, toh yeh dhyan rahe ki aapke paas back up mein kam se kam 1 kg extra zaroor hona chahiye.\n\n` + 
+                    saucesStatusLines.join('\n');
+                
+                let saucesWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(saucesReportText)}`;
+
+                box.innerHTML = `
+                    <div class="supplier-box">
+                        <div class="supplier-title">🏺 Sauces Status Report</div>
+                        <div class="instruction-text">
+                            👉 <strong>Kaise use karein:</strong> Yeh report check kar lijiye aur zaroorat padne par management group par bhej sakte hain.
+                        </div>
+                        <div class="order-list">${saucesReportText}</div>
+                        <a href="${saucesWhatsappUrl}" class="btn-whatsapp">Share Sauces Report via WhatsApp</a>
+                        <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('sauces')">Done & Go to Home Page ✅</button>
+                    </div>
+                `;
             }
 
             document.getElementById('home-dashboard').style.display = 'none';
@@ -1381,6 +1477,11 @@
             let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks').value) || 0;
             masterAuditLines.push(`• *Onion Tangles* | Stock: ${otStock} portions`);
             masterAuditLines.push(`• *Mozzarella Sticks* | Stock: ${msStock} portions ${msStock <= 10 ? '(⚠️ Block Defrost Triggered)' : ''}`);
+
+            masterInventory.filter(i => i.cat === "Sauces").forEach(item => {
+                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
+            });
 
             let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
             masterLogText += masterAuditLines.join('\n');
