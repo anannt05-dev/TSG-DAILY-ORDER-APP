@@ -201,7 +201,6 @@
             cursor: pointer;
         }
 
-        /* Modal Overlay for Waiver in Hindi (Roman) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -297,7 +296,8 @@
             { id: 8, name: "Green Capsicum", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
             { id: 9, name: "Ginger", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
             { id: 10, name: "Coriander", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
-            { id: 11, name: "Beetroot", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            // Central Kitchen Only / Special Items (Beetroot moved here)
+            { id: 11, name: "Beetroot", unit: "kg", hasStore: false, hasCK: true },
             { id: 12, name: "Frozen Green Peas", unit: "kg", hasStore: false, hasCK: true },
             { id: 13, name: "French Beans", unit: "kg", hasStore: false, hasCK: true },
             { id: 14, name: "Red Chilli Fresh", unit: "kg", hasStore: false, hasCK: true }
@@ -449,7 +449,6 @@
             const resultsContainer = document.getElementById('supplier-orders');
             resultsContainer.innerHTML = '';
 
-            // 1. Vendor WhatsApp Message
             let orderText = `*Order for The Serial Griller Lokhandwala*\n\n`;
             if (orderItems.length === 0) {
                 orderText += `(No items required today)\n`;
@@ -460,7 +459,6 @@
             }
             const vendorWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(orderText)}`;
 
-            // 2. Manager Audit Counter-Copy WhatsApp Message
             let auditText = `📋 *MANAGER AUDIT COPY - VEG ORDER*\n`;
             auditText += `Date: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
             auditDetails.forEach(ad => {
