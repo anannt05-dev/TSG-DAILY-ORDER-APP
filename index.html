@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Serial Griller - Smart Ordering System</title>
     <style>
         :root {
@@ -23,7 +23,8 @@
             color: var(--text);
             margin: 0;
             padding: 12px;
-            padding-bottom: 90px;
+            padding-bottom: 120px; /* Extra space for mobile keyboard */
+            -webkit-tap-highlight-color: transparent;
         }
 
         header {
@@ -62,7 +63,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            min-height: 50px;
         }
 
         .dash-card.completed {
@@ -97,8 +98,8 @@
         .item-card {
             background-color: var(--card-bg);
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
@@ -153,18 +154,18 @@
             font-size: 0.75rem;
             color: var(--text-muted);
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .item-input {
             width: 100%;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 6px;
             border: 1px solid #444;
             background: #2a2a2a;
             color: #fff;
             text-align: center;
-            font-size: 0.95rem;
+            font-size: 1rem; /* Prevents auto-zoom on iOS */
             box-sizing: border-box;
         }
 
@@ -180,9 +181,10 @@
             background: #333;
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
         }
 
@@ -190,7 +192,7 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 14px;
+            padding: 16px;
             border-radius: 30px;
             font-size: 1.1rem;
             font-weight: bold;
@@ -205,7 +207,7 @@
             background: var(--card-bg);
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 12px;
+            padding: 14px;
             margin-bottom: 16px;
         }
 
@@ -221,8 +223,8 @@
             margin-bottom: 10px;
             white-space: pre-line;
             background: #121212;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 6px;
             border: 1px solid #222;
         }
 
@@ -230,9 +232,9 @@
             font-size: 0.85rem;
             color: var(--warning);
             background: #252525;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
             line-height: 1.4;
             border-left: 3px solid var(--warning);
         }
@@ -243,10 +245,10 @@
             text-decoration: none;
             display: block;
             text-align: center;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 1rem;
             margin-bottom: 8px;
         }
 
@@ -256,10 +258,10 @@
             text-decoration: none;
             display: block;
             text-align: center;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 1rem;
             margin-bottom: 8px;
         }
 
@@ -267,7 +269,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -279,8 +281,9 @@
             background: var(--card-bg);
             border: 2px solid var(--warning);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             max-width: 400px;
+            width: 100%;
             text-align: center;
         }
 
@@ -297,9 +300,10 @@
 
         .modal-btn {
             flex: 1;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 6px;
             font-weight: bold;
+            font-size: 1rem;
             border: none;
             cursor: pointer;
         }
@@ -464,7 +468,6 @@
             "🔥 Weekend Mode Active (Higher Min/Max)" : 
             "🟢 Weekday Mode Active (Standard Min/Max)";
 
-        // Helper for Day Min Requirement for Regular Sesame Bun (Weekday: 50, Weekend: 75)
         function getMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
             return wknd ? 75 : 50;
@@ -516,7 +519,7 @@
                 const min = isWeekendMode ? item.weMin : item.wdMin;
                 const max = isWeekendMode ? item.weMax : item.wdMax;
                 let rangeText = item.hasStore ? 
-                    `Target Range: Min <span class="unit-badge">${min}${item.unit}</span> / Max <span class="unit-badge">${max}${item.unit}</span>` : 
+                    `Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span>` : 
                     `Central Kitchen Production Requirement Only`;
 
                 vegHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${rangeText}</div>`;
@@ -525,7 +528,7 @@
                         <div class="input-grid">
                             <div class="input-box">
                                 <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong> (or Gm)</label>
-                                <input type="number" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
                             </div>
                         </div>
                     `;
@@ -535,7 +538,7 @@
                         <div class="input-grid" style="margin-top: 8px;">
                             <div class="input-box">
                                 <label>CK Extra Req in <strong style="color:var(--warning)">${item.unit}</strong></label>
-                                <input type="number" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="Enter CK req in **${item.unit}**" />
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="Enter CK req in **${item.unit}**" />
                             </div>
                         </div>
                     `;
@@ -553,12 +556,12 @@
                 masterInventory.filter(i => i.cat === cat).forEach(item => {
                     const min = isWeekendMode ? item.weMin : item.wdMin;
                     const max = isWeekendMode ? item.weMax : item.wdMax;
-                    chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min}${item.unit}</span> / Max <span class="unit-badge">${max}${item.unit}</span></div>`;
+                    chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
                     chickHtml += `
                         <div class="input-grid">
                             <div class="input-box">
                                 <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong></label>
-                                <input type="number" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
                             </div>
                         </div>
                     `;
@@ -573,12 +576,12 @@
             masterInventory.filter(i => i.cat === "Buff").forEach(item => {
                 const min = isWeekendMode ? item.weMin : item.wdMin;
                 const max = isWeekendMode ? item.weMax : item.wdMax;
-                buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min}${item.unit}</span> / Max <span class="unit-badge">${max}${item.unit}</span></div>`;
+                buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
                 buffHtml += `
                     <div class="input-grid">
                         <div class="input-box">
                             <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong></label>
-                            <input type="number" min="0" step="1" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
                         </div>
                     </div>
                 `;
@@ -586,7 +589,7 @@
             });
             buffCont.innerHTML = buffHtml;
 
-            // Buns Orders (Regular Sesame Bun & Multigrain Bun)
+            // Buns Orders
             const bunsCont = document.getElementById('buns-inputs-list');
             let lastSesameBunOrder = localStorage.getItem('tsg_last_sesame_bun_order') || 0;
             let lastMultiBunOrder = localStorage.getItem('tsg_last_multi_bun_order') || 0;
@@ -596,15 +599,15 @@
             bunsCont.innerHTML = `
                 <div class="item-card">
                     <div class="item-name">Regular Sesame Bun</div>
-                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Today Min: ${minToday}, Tomorrow Min:${minTomorrow})</div>
+                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Today Min: ${minToday}, Tomorrow Min: ${minTomorrow})</div>
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Closing Stock of Regular Sesame Bun in <strong style="color:var(--warning)">PCS</strong></label>
-                            <input type="number" min="0" step="1" id="stock-sesame-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-sesame-bun" class="item-input" placeholder="Enter stock in **PCS**" />
                         </div>
                         <div class="input-box">
                             <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
-                            <input type="number" min="0" step="1" id="pending-delivery-sesame" class="item-input" value="${lastSesameBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-sesame" class="item-input" value="${lastSesameBunOrder}" placeholder="Enter pending delivery in **PCS**" />
                         </div>
                     </div>
                 </div>
@@ -615,11 +618,11 @@
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Closing Stock of Multigrain Bun in <strong style="color:var(--warning)">PCS</strong></label>
-                            <input type="number" min="0" step="1" id="stock-multi-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-multi-bun" class="item-input" placeholder="Enter stock in **PCS**" />
                         </div>
                         <div class="input-box">
                             <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
-                            <input type="number" min="0" step="1" id="pending-delivery-multi" class="item-input" value="${lastMultiBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-multi" class="item-input" value="${lastMultiBunOrder}" placeholder="Enter pending delivery in **PCS**" />
                         </div>
                     </div>
                 </div>
@@ -636,10 +639,113 @@
                 pendingSectionKey = sectionKey;
                 document.getElementById('reset-modal').style.display = 'flex';
             } else {
-                openSection(`${sectionKey}-section`); } }  function closeResetModal() { document.getElementById('reset-modal').style.display = 'none'; pendingSectionKey = ''; }  function confirmResetSection() { if (pendingSectionKey) { localStorage.setItem(`status_${pendingSectionKey}`, 'false');
-                let sectionId = `${pendingSectionKey}-section`; closeResetModal(); openSection(sectionId); } }  function openSection(sectionId) { document.getElementById('home-dashboard').style.display = 'none'; document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none'); document.getElementById('results-tab').style.display = 'none'; document.getElementById(sectionId).style.display = 'block'; window.scrollTo(0,0); }  function goHome() { document.getElementById('home-dashboard').style.display = 'block'; document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none'); document.getElementById('results-tab').style.display = 'none'; updateDashboardStatus(); window.scrollTo(0,0); }  function updateDashboardStatus() { let vegDone = localStorage.getItem('status_veg') === 'true'; let chickDone = localStorage.getItem('status_chicken') === 'true'; let buffDone = localStorage.getItem('status_buff') === 'true'; let bunsDone = localStorage.getItem('status_buns') === 'true';  setCardStatus('card-veg', 'status-veg', vegDone); setCardStatus('card-chicken', 'status-chicken', chickDone); setCardStatus('card-buff', 'status-buff', buffDone); setCardStatus('card-buns', 'status-buns', bunsDone);  let btn = document.getElementById('btn-master-submit'); if (vegDone && chickDone && buffDone && bunsDone) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; } else { btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; } }  function setCardStatus(cardId, statusId, isDone) { let card = document.getElementById(cardId); let status = document.getElementById(statusId); if (isDone) { card.classList.add('completed'); status.innerText = "✅ Done"; } else { card.classList.remove('completed'); status.innerText = "➡️"; } }  function roundToNearestHalf(val) { return Math.ceil(val / 0.5) * 0.5; }  function formatVegQty(val, isPcs) { if (isPcs) return Math.ceil(val) + " pcs"; if (val < 1) return Math.round(val * 1000) + " gm"; return val.toFixed(1).replace('.0', '') + " kg"; }  // --- BUFF SAFEGUARD POPUP TRIGGER --- function triggerBuffWarningBeforeGenerate() { for (let item of masterInventory.filter(i => i.cat === "Buff")) { let valInput = document.getElementById(`stock-${item.id}`);
+                openSection(`${sectionKey}-section`);
+            }
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').style.display = 'none';
+            pendingSectionKey = '';
+        }
+
+        function confirmResetSection() {
+            if (pendingSectionKey) {
+                localStorage.setItem(`status_${pendingSectionKey}`, 'false');
+                let sectionId = `${pendingSectionKey}-section`;
+                closeResetModal();
+                openSection(sectionId);
+            }
+        }
+
+        function openSection(sectionId) {
+            document.getElementById('home-dashboard').style.display = 'none';
+            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
+            document.getElementById('results-tab').style.display = 'none';
+            document.getElementById(sectionId).style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goHome() {
+            document.getElementById('home-dashboard').style.display = 'block';
+            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
+            document.getElementById('results-tab').style.display = 'none';
+            updateDashboardStatus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateDashboardStatus() {
+            let vegDone = localStorage.getItem('status_veg') === 'true';
+            let chickDone = localStorage.getItem('status_chicken') === 'true';
+            let buffDone = localStorage.getItem('status_buff') === 'true';
+            let bunsDone = localStorage.getItem('status_buns') === 'true';
+
+            setCardStatus('card-veg', 'status-veg', vegDone);
+            setCardStatus('card-chicken', 'status-chicken', chickDone);
+            setCardStatus('card-buff', 'status-buff', buffDone);
+            setCardStatus('card-buns', 'status-buns', bunsDone);
+
+            let btn = document.getElementById('btn-master-submit');
+            if (vegDone && chickDone && buffDone && bunsDone) {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            } else {
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            }
+        }
+
+        function setCardStatus(cardId, statusId, isDone) {
+            let card = document.getElementById(cardId);
+            let status = document.getElementById(statusId);
+            if (isDone) {
+                card.classList.add('completed');
+                status.innerText = "✅ Done";
+            } else {
+                card.classList.remove('completed');
+                status.innerText = "➡️";
+            }
+        }
+
+        function roundToNearestHalf(val) {
+            return Math.ceil(val / 0.5) * 0.5;
+        }
+
+        function formatVegQty(val, isPcs) {
+            if (isPcs) return Math.ceil(val) + " pcs";
+            if (val < 1) return Math.round(val * 1000) + " gm";
+            return val.toFixed(1).replace('.0', '') + " kg";
+        }
+
+        // --- BUFF SAFEGUARD POPUP TRIGGER ---
+        function triggerBuffWarningBeforeGenerate() {
+            for (let item of masterInventory.filter(i => i.cat === "Buff")) {
+                let valInput = document.getElementById(`stock-${item.id}`);
                 if (valInput.value === "") {
-                    alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`); valInput.focus(); return; } } document.getElementById('buff-safeguard-modal').style.display = 'flex'; }  function closeBuffSafeguardModal() { document.getElementById('buff-safeguard-modal').style.display = 'none'; }  function confirmBuffAndGenerate() { closeBuffSafeguardModal(); processSection('buff'); }  // --- SECTION PROCESSING LOGIC --- function processSection(sectionName) { let box = document.getElementById('section-result-box'); box.innerHTML = '';  if (sectionName === 'veg') { for (let item of masterInventory.filter(i => i.cat === "Vegetables" && i.hasStore)) { let valInput = document.getElementById(`stock-${item.id}`);
+                    alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
+                    valInput.focus();
+                    return;
+                }
+            }
+            document.getElementById('buff-safeguard-modal').style.display = 'flex';
+        }
+
+        function closeBuffSafeguardModal() {
+            document.getElementById('buff-safeguard-modal').style.display = 'none';
+        }
+
+        function confirmBuffAndGenerate() {
+            closeBuffSafeguardModal();
+            processSection('buff');
+        }
+
+        // --- SECTION PROCESSING LOGIC ---
+        function processSection(sectionName) {
+            let box = document.getElementById('section-result-box');
+            box.innerHTML = '';
+
+            if (sectionName === 'veg') {
+                for (let item of masterInventory.filter(i => i.cat === "Vegetables" && i.hasStore)) {
+                    let valInput = document.getElementById(`stock-${item.id}`);
                     if (valInput.value === "") {
                         alert(`⚠️ Store stock enter karna zaroori hai: ${item.name}`);
                         valInput.focus();
@@ -655,7 +761,11 @@
                     const max = isWeekendMode ? item.weMax : item.wdMax;
 
                     if (item.hasStore) {
-                        closingStockVal = parseFloat(document.getElementById(`stock-${item.id}`).value) \vert{}\vert{} 0; storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0; }  let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
+                        closingStockVal = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                        storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
+                    }
+
+                    let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
                     let totalNeeded = storeOrder + ckVal;
                     let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
 
@@ -674,4 +784,340 @@
                 } else {
                     let vegOrderText = `*Order for The Serial Griller Lokhandwala*\n\n`;
                     vegOrderItems.forEach(i => { vegOrderText += `• ${i.name}: *${i.formattedQty}*\n`; });
-                    const vegWhatsappUrl = `
+                    const vegWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(vegOrderText)}`;
+
+                    box.innerHTML = `
+                        <div class="supplier-box">
+                            <div class="supplier-title">📦 Send Order to Vegetable TSG</div>
+                            <div class="instruction-text">
+                                👉 <strong>Kaise bhejein:</strong> "Send Vendor Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>VEGETABLE TSG</strong> search karo aur jab group aa jaye toh wahan message send kar do.
+                            </div>
+                            <div class="order-list">${vegOrderText}</div>
+                            <a href="${vegWhatsappUrl}" class="btn-whatsapp">Send Vendor Order via WhatsApp</a>
+                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('veg')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                }
+
+            } else if (sectionName === 'chicken') {
+                for (let item of masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs")) {
+                    let valInput = document.getElementById(`stock-${item.id}`);
+                    if (valInput.value === "") {
+                        alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
+                        valInput.focus();
+                        return;
+                    }
+                }
+
+                let rawStock = {};
+                masterInventory.filter(i => i.cat === "Chicken - Raw Stock").forEach(item => {
+                    rawStock[item.id] = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                });
+
+                let chickenOrderItems = [];
+                let marinateInstructions = [];
+
+                masterInventory.filter(i => i.isMarinated).forEach(item => {
+                    const min = isWeekendMode ? item.weMin : item.wdMin;
+                    const max = isWeekendMode ? item.weMax : item.wdMax;
+                    let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    let deficit = (stock <= min) ? (max - stock) : 0;
+
+                    if (deficit > 0) {
+                        if (item.isBatchPatty) {
+                            let batchesNeeded = Math.ceil(deficit / 26);
+                            let kheemaNeeded = batchesNeeded * 2;
+                            let availableKheema = rawStock['raw_kheema'] || 0;
+
+                            if (availableKheema >= kheemaNeeded) {
+                                rawStock['raw_kheema'] -= kheemaNeeded;
+                                marinateInstructions.push(`• Raw Breast Kheema *${kheemaNeeded} kg* aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
+                            } else {
+                                let shortfall = kheemaNeeded - availableKheema;
+                                rawStock['raw_kheema'] = 0;
+                                if (shortfall > 0) {
+                                    chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: Math.ceil(shortfall), unit: "kg" });
+                                }
+                                marinateInstructions.push(`• Raw Breast Kheema aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
+                            }
+                        } else {
+                            let rawKey = item.rawKey;
+                            let yieldRate = item.yieldPerKg;
+                            let rawAvailable = rawStock[rawKey] || 0;
+                            let rawKgNeeded = deficit / yieldRate;
+                            let rawItemObj = masterInventory.find(i => i.id === rawKey);
+
+                            if (rawAvailable >= rawKgNeeded) {
+                                rawStock[rawKey] -= rawKgNeeded;
+                                let usedKgRounded = Math.ceil(rawKgNeeded);
+                                marinateInstructions.push(`• Raw ${rawItemObj.name} *${usedKgRounded} kg* rakha hai fridge me, marinate kar dena usko.`);
+                            } else {
+                                let shortfallKg = rawKgNeeded - rawAvailable;
+                                rawStock[rawKey] = 0;
+                                let orderedKg = Math.ceil(shortfallKg);
+                                if (orderedKg > 0) {
+                                    chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
+                                }
+                                marinateInstructions.push(`• Raw ${rawItemObj.name} rakha hai fridge me, marinate kar dena usko.`);
+                            }
+                        }
+                    }
+                });
+
+                masterInventory.filter(i => i.cat === "Chicken - Raw Stock" && !i.isFat).forEach(item => {
+                    let stock = rawStock[item.id];
+                    const min = isWeekendMode ? item.weMin : item.wdMin;
+                    const max = isWeekendMode ? item.weMax : item.wdMax;
+                    let rawNeeded = (stock <= min) ? (max - stock) : 0;
+                    if (rawNeeded > 0) {
+                        chickenOrderItems.push({ name: item.vendorName, qty: Math.ceil(rawNeeded), unit: item.unit, isThigh: item.isThigh });
+                    }
+                });
+
+                let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
+                let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
+                if (totalKheemaOrdered > 0 && fatStock === 0) {
+                    chickenOrderItems.push({ name: "FAT KHEEMA", qty: 0.25, unit: "kg", isFatFormatted: "250 gm" });
+                }
+
+                let eggsStock = parseFloat(document.getElementById(`stock-eggs`).value) || 0;
+                let eggsOrderNeeded = (eggsStock <= 20);
+                let eggsTrayOrder = eggsOrderNeeded ? Math.ceil((60 - eggsStock) / 30) * 30 : 0;
+
+                let consolidatedChicken = {};
+                chickenOrderItems.forEach(i => {
+                    if (!consolidatedChicken[i.name]) consolidatedChicken[i.name] = { qty: 0, isThigh: i.isThigh, isFatFormatted: i.isFatFormatted };
+                    consolidatedChicken[i.name].qty += i.qty;
+                });
+
+                let chickenItemsList = [];
+                for (const [name, data] of Object.entries(consolidatedChicken)) {
+                    if (data.isFatFormatted) {
+                        chickenItemsList.push(`• ${name}: *${data.isFatFormatted}*`);
+                    } else if (data.isThigh) {
+                        chickenItemsList.push(`• ${name}: *${data.qty} kg* (${data.qty * 10} pcs of 100g proper weight proper size: ${data.qty} kg = ${data.qty * 10} pcs)`);
+                    } else {
+                        chickenItemsList.push(`• ${name}: *${data.qty} kg*`);
+                    }
+                }
+
+                let hasChickenOrder = chickenItemsList.length > 0;
+                let hasPrep = marinateInstructions.length > 0 || eggsOrderNeeded;
+
+                if (!hasChickenOrder && !hasPrep) {
+                    box.innerHTML = `
+                        <div class="supplier-box" style="text-align:center; padding:20px;">
+                            <h3>👍 No order needed, we have enough stock for tomorrow (Poultry).</h3>
+                            <button class="btn-primary-action" onclick="markSectionComplete('chicken')">Go to Home Page</button>
+                        </div>
+                    `;
+                } else {
+                    let htmlContent = '';
+                    if (hasChickenOrder) {
+                        let chickenVendorText = `*Order for The Serial Griller Lokhandwala*\n\n` + chickenItemsList.join('\n') + '\n';
+                        let chickenVendorUrl = `https://wa.me/?text=${encodeURIComponent(chickenVendorText)}`;
+                        htmlContent += `
+                            <div class="supplier-box">
+                                <div class="supplier-title">🍗 Send Order to "Chicken - serial griller"</div>
+                                <div class="instruction-text">👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>Chicken - serial griller</strong> group mein bhejo.</div>
+                                <div class="order-list">${chickenVendorText}</div>
+                                <a href="${chickenVendorUrl}" class="btn-whatsapp">Send Chicken Order via WhatsApp</a>
+                            </div>
+                        `;
+                    }
+                    if (hasPrep) {
+                        let coordText = `📋 *CHICKEN MARINATION & PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n`;
+                        if (marinateInstructions.length > 0) coordText += marinateInstructions.join('\n');
+                        if (eggsOrderNeeded) coordText += `\n\n⚠️ *Eggs low hain!* Kripya Hyperpure se *${eggsTrayOrder} pcs* (${eggsTrayOrder/30} trays) order kar dein.`;
+                        let coordUrl = `https://wa.me/?text=${encodeURIComponent(coordText)}`;
+                        htmlContent += `
+                            <div class="supplier-box" style="border-color: #ff9800;">
+                                <div class="supplier-title" style="color: #ffb74d;">🔪 SEND THIS TO TSG COORDINATION GROUP</div>
+                                <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">👉 <strong>Kaise bhejein:</strong> Yeh instruction message <strong>TSG-coordination</strong> group par bhejo taaki staff ko pata chale kya marinate karna hai.</div>
+                                <div class="order-list">${coordText}</div>
+                                <a href="${coordUrl}" class="btn-whatsapp" style="background-color: #ff9800;">Send Prep to TSG-coordination</a>
+                            </div>
+                        `;
+                    }
+                    htmlContent += `<button class="btn-primary-action" onclick="markSectionComplete('chicken')">Done & Go to Home Page ✅</button>`;
+                    box.innerHTML = htmlContent;
+                }
+
+            } else if (sectionName === 'buff') {
+                let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
+                let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
+                let buffOrderNeeded = ((frozenBuff + freshBuff) <= 10);
+
+                if (!buffOrderNeeded) {
+                    box.innerHTML = `
+                        <div class="supplier-box" style="text-align:center; padding:20px;">
+                            <h3>👍 No order needed, we have enough stock for tomorrow (Buff).</h3>
+                            <button class="btn-primary-action" onclick="markSectionComplete('buff')">Go to Home Page</button>
+                        </div>
+                    `;
+                } else {
+                    let buffOrderText = `*Order for The Serial Griller Lokhandwala*\n\n• Veal Kheema PINK Fresh and NO smell Not frozen: *2 kg*\n`;
+                    let buffVendorUrl = `https://wa.me/?text=${encodeURIComponent(buffOrderText)}`;
+                    box.innerHTML = `
+                        <div class="supplier-box">
+                            <div class="supplier-title">🥩 Send Order to "TSG beef order"</div>
+                            <div class="instruction-text">👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG beef order</strong> group mein send karo.</div>
+                            <div class="order-list">${buffOrderText}</div>
+                            <a href="${buffVendorUrl}" class="btn-whatsapp">Send Buff Order via WhatsApp</a>
+                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buff')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                }
+
+            } else if (sectionName === 'buns') {
+                let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value);
+                let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
+
+                if (isNaN(sesameStock)) {
+                    alert("⚠️ Closing stock of Regular Sesame Bun enter karna zaroori hai!");
+                    document.getElementById('stock-sesame-bun').focus();
+                    return;
+                }
+
+                let totalSesameAvailable = sesameStock + sesamePending;
+                let minToday = getMinForDay(todayDay);
+                let minTomorrow = getMinForDay((todayDay + 1) % 7);
+                let twoDayMin = minToday + minTomorrow;
+
+                let sesameShortfall = twoDayMin - totalSesameAvailable;
+                let sesameOrderQty = sesameShortfall > 0 ? Math.max(sesameShortfall, 40) : 0;
+                localStorage.setItem('tsg_last_sesame_bun_order', sesameOrderQty);
+
+                let multiStock = parseFloat(document.getElementById('stock-multi-bun').value);
+                let multiPending = parseFloat(document.getElementById('pending-delivery-multi').value) || 0;
+
+                if (isNaN(multiStock)) {
+                    alert("⚠️ Closing stock of Multigrain Bun enter karna zaroori hai!");
+                    document.getElementById('stock-multi-bun').focus();
+                    return;
+                }
+
+                let totalMultiAvailable = multiStock + multiPending;
+                let multiNeeded = (totalMultiAvailable <= 6) ? (30 - totalMultiAvailable) : 0;
+                let multiOrderQty = multiNeeded > 0 ? Math.max(multiNeeded, 30) : 0;
+                localStorage.setItem('tsg_last_multi_bun_order', multiOrderQty);
+
+                let bunsOrderList = [];
+                if (sesameOrderQty > 0) bunsOrderList.push(`• Regular Sesame Bun: *${sesameOrderQty} pcs*`);
+                if (multiOrderQty > 0) bunsOrderList.push(`• Multigrain Bun: *${multiOrderQty} pcs*`);
+
+                if (bunsOrderList.length === 0) {
+                    box.innerHTML = `
+                        <div class="supplier-box" style="text-align:center; padding:20px;">
+                            <h3>👍 Stock is sufficient for both bun types. No bun order needed today.</h3>
+                            <button class="btn-primary-action" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                } else {
+                    let bunsOrderText = `*Order for The Serial Griller Lokhandwala*\n\n` + bunsOrderList.join('\n') + `\n\nKripya karke isko jaldi deliver karwa dijiye. Dhanyawad!`;
+                    let bunsWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(bunsOrderText)}`;
+
+                    box.innerHTML = `
+                        <div class="supplier-box">
+                            <div class="supplier-title">🍞 Send Order for Buns</div>
+                            <div class="instruction-text">
+                                👉 <strong>Regular Sesame Bun:</strong> Available (${totalSesameAvailable}) vs 2-Day Min Req (${twoDayMin}) -> Order: <strong>${sesameOrderQty} pcs</strong> (MOQ 40).<br>
+                                👉 <strong>Multigrain Bun:</strong> Available (${totalMultiAvailable}) -> Order: <strong>${multiOrderQty} pcs</strong> (MOQ 30).<br>
+                                💾 <em>Note:</em> Orders have been saved to memory for tomorrow's pending delivery check.
+                            </div>
+                            <div class="order-list">${bunsOrderText}</div>
+                            <a href="${bunsWhatsappUrl}" class="btn-whatsapp">Send Buns Order via WhatsApp</a>
+                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('home-dashboard').style.display = 'none';
+            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
+            document.getElementById('results-tab').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function markSectionComplete(sectionName) {
+            localStorage.setItem(`status_${sectionName}`, 'true');
+            goHome();
+        }
+
+        function generateMasterAuditLog() {
+            let resultsContainer = document.getElementById('section-result-box');
+            resultsContainer.innerHTML = '';
+
+            let masterAuditLines = [];
+
+            masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
+                let storeOrder = 0;
+                let closingStockVal = 0;
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+
+                if (item.hasStore) {
+                    let rawVal = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    closingStockVal = rawVal;
+                    storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
+                }
+                let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
+                let totalNeeded = storeOrder + ckVal;
+                let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
+                let stockStr = item.hasStore ? (item.isPcs ? closingStockVal + " pcs" : closingStockVal + " kg") : "N/A";
+                let orderedStr = totalNeeded > 0 ? formatVegQty(finalQty, item.isPcs) : "Sufficient";
+
+                masterAuditLines.push(`• *${item.name}* | Stock: ${stockStr} | CK Req: ${ckVal} | Order: *${orderedStr}*`);
+            });
+
+            masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
+                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
+            });
+
+            let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
+            let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
+            masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
+            masterAuditLines.push(`• *Fresh Buff Patty* | Stock: ${freshBuff} pcs`);
+
+            let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value) || 0;
+            let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
+            let sesameTotal = sesameStock + sesamePending;
+            let twoDayMin = getMinForDay(todayDay) + getMinForDay((todayDay + 1) % 7);
+            let sesameShortfall = twoDayMin - sesameTotal;
+            let sesameAuditOrder = sesameShortfall > 0 ? Math.max(sesameShortfall, 40) : 0;
+            masterAuditLines.push(`• *Regular Sesame Bun* | Stock: ${sesameStock} pcs | Pending: ${sesamePending} pcs | Order: *${sesameAuditOrder > 0 ? sesameAuditOrder + ' pcs' : 'Sufficient'}*`);
+
+            let multiStock = parseFloat(document.getElementById('stock-multi-bun').value) || 0;
+            let multiPending = parseFloat(document.getElementById('pending-delivery-multi').value) || 0;
+            let multiTotal = multiStock + multiPending;
+            let multiNeeded = (multiTotal <= 6) ? (30 - multiTotal) : 0;
+            let multiAuditOrder = multiNeeded > 0 ? Math.max(multiNeeded, 30) : 0;
+            masterAuditLines.push(`• *Multigrain Bun* | Stock: ${multiStock} pcs | Pending: ${multiPending} pcs | Order: *${multiAuditOrder > 0 ? multiAuditOrder + ' pcs' : 'Sufficient'}*`);
+
+            let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
+            masterLogText += masterAuditLines.join('\n');
+            masterLogText += `\n\n_All inventory closing stock & orders verified by Manager._`;
+            const masterLogUrl = `https://wa.me/?text=${encodeURIComponent(masterLogText)}`;
+
+            resultsContainer.innerHTML = `
+                <div class="supplier-box" style="border-color: #9c27b0;">
+                    <div class="supplier-title" style="color: #ba68c8;">📋 MASTER INVENTORY AUDIT LOG (Management Group)</div>
+                    <div class="instruction-text" style="border-left-color: #ba68c8; color: #e1bee7;">
+                        👉 <strong>Kaise bhejein:</strong> Yeh master log message management group par send karo taaki check ho sake ki saari inventory bhari gayi hai.
+                    </div>
+                    <div class="order-list">${masterLogText}</div>
+                    <a href="${masterLogUrl}" class="btn-audit" style="background-color: #9c27b0;">Send Master Log to Management</a>
+                </div>
+            `;
+
+            document.getElementById('home-dashboard').style.display = 'none';
+            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
+            resultsContainer.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        renderInputs();
+    </script>
+</body>
+</html>
