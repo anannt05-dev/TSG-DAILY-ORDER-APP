@@ -406,7 +406,6 @@
     </div>
 
     <script>
-        // --- 10 AM RESET & OPERATIONAL DATE LOGIC ---
         function getOperationalDateKey() {
             let now = new Date();
             if (now.getHours() < 10) {
@@ -539,7 +538,6 @@
             updateDashboardStatus();
         }
 
-        // --- GREEN SECTION CLICK & RESET WARNING LOGIC ---
         let pendingSectionKey = '';
 
         function handleCardClick(sectionKey) {
@@ -623,7 +621,6 @@
             return val.toFixed(1).replace('.0', '') + " kg";
         }
 
-        // --- SECTION PROCESSING LOGIC ---
         function processSection(sectionName) {
             let box = document.getElementById('section-result-box');
             box.innerHTML = '';
@@ -877,14 +874,12 @@
             goHome();
         }
 
-        // --- MASTER AUDIT LOG GENERATION ---
         function generateMasterAuditLog() {
             let resultsContainer = document.getElementById('section-result-box');
             resultsContainer.innerHTML = '';
 
             let masterAuditLines = [];
 
-            // Veg
             masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
                 let storeOrder = 0;
                 let closingStockVal = 0;
@@ -906,13 +901,11 @@
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stockStr} | CK Req: ${ckVal} | Order: *${orderedStr}*`);
             });
 
-            // Chicken & Eggs
             masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
                 let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
             });
 
-            // Buff
             let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
             let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
             masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
