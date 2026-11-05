@@ -145,7 +145,7 @@
 
         .input-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 8px;
         }
 
@@ -166,6 +166,20 @@
             text-align: center;
             font-size: 0.95rem;
             box-sizing: border-box;
+        }
+
+        .item-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: var(--warning);
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-sizing: border-box;
+            cursor: pointer;
         }
 
         .nav-buttons {
@@ -406,6 +420,7 @@
     </div>
 
     <script>
+        // --- 10 AM RESET & OPERATIONAL DATE LOGIC ---
         function getOperationalDateKey() {
             let now = new Date();
             if (now.getHours() < 10) {
@@ -432,40 +447,40 @@
 
         const masterInventory = [
             // --- VEGETABLES ---
-            { id: 'v1', name: "Onions", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
-            { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 'v3', name: "Iceberg Lettuce fresh", cat: "Vegetables", unit: "kg", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
-            { id: 'v4', name: "Green Chilli", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 'v5', name: "Lemon", cat: "Vegetables", unit: "pcs", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
-            { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 'v7', name: "Carrot", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 'v8', name: "Green Capsicum", cat: "Vegetables", unit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
-            { id: 'v9', name: "Ginger", cat: "Vegetables", unit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 'v10', name: "Coriander", cat: "Vegetables", unit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
-            { id: 'v11', name: "Beetroot", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
-            { id: 'v12', name: "Frozen Green Peas", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
-            { id: 'v13', name: "French Beans", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
-            { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unit: "kg", hasStore: false, hasCK: true },
+            { id: 'v1', name: "Onions", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
+            { id: 'v2', name: "Tomato", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v3', name: "Iceberg Lettuce fresh", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
+            { id: 'v4', name: "Green Chilli", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v5', name: "Lemon", cat: "Vegetables", unitOptions: ["pcs"], defaultUnit: "pcs", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
+            { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v7', name: "Carrot", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v8', name: "Green Capsicum", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
+            { id: 'v9', name: "Ginger", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v10', name: "Coriander", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
+            { id: 'v11', name: "Beetroot", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", hasStore: false, hasCK: true },
+            { id: 'v12', name: "Frozen Green Peas", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", hasStore: false, hasCK: true },
+            { id: 'v13', name: "French Beans", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", hasStore: false, hasCK: true },
+            { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unitOptions: ["kg", "gm"], defaultUnit: "kg", hasStore: false, hasCK: true },
 
             // --- CHICKEN & EGGS ---
-            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "pcs", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
-            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20 },
-            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
-            { id: 'c4', name: "Chicken Crunchies Coated and prepped", cat: "Chicken - Marinated", unit: "portions", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
-            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "pcs", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
+            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unitOptions: ["pcs", "kg"], defaultUnit: "pcs", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
+            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unitOptions: ["pcs", "kg"], defaultUnit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20 },
+            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unitOptions: ["pcs", "kg"], defaultUnit: "pcs", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
+            { id: 'c4', name: "Chicken Crunchies Coated and prepped", cat: "Chicken - Marinated", unitOptions: ["portions", "kg"], defaultUnit: "portions", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
+            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unitOptions: ["pcs"], defaultUnit: "pcs", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
 
-            { id: 'raw_wings', name: "RAW WINGS", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "WINGS" },
-            { id: 'raw_supreme', name: "RAW SUPREME", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "SUPREME" },
-            { id: 'raw_thigh', name: "RAW THIGH BONELESS", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "THIGH BONELESS", isThigh: true },
-            { id: 'raw_kheema', name: "CHICKEN BREAST KHEEMA", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN BREAST KHEEMA" },
-            { id: 'raw_popcorn', name: "CHICKEN POPCORN CUT", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN POPCORN CUT" },
-            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, isFat: true, vendorName: "FAT KHEEMA" },
+            { id: 'raw_wings', name: "RAW WINGS", cat: "Chicken - Raw Stock", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "WINGS" },
+            { id: 'raw_supreme', name: "RAW SUPREME", cat: "Chicken - Raw Stock", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "SUPREME" },
+            { id: 'raw_thigh', name: "RAW THIGH BONELESS", cat: "Chicken - Raw Stock", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "THIGH BONELESS", isThigh: true },
+            { id: 'raw_kheema', name: "CHICKEN BREAST KHEEMA", cat: "Chicken - Raw Stock", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN BREAST KHEEMA" },
+            { id: 'raw_popcorn', name: "CHICKEN POPCORN CUT", cat: "Chicken - Raw Stock", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN POPCORN CUT" },
+            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unitOptions: ["kg", "gm"], defaultUnit: "kg", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, isFat: true, vendorName: "FAT KHEEMA" },
 
-            { id: 'eggs', name: "Eggs", cat: "Eggs", unit: "pcs", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
+            { id: 'eggs', name: "Eggs", cat: "Eggs", unitOptions: ["pcs", "trays"], defaultUnit: "pcs", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
 
             // --- BUFF ---
-            { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "pcs", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
-            { id: 'b2', name: "Fresh Buff Patty (refridgerated)", cat: "Buff", unit: "pcs", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
+            { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unitOptions: ["pcs"], defaultUnit: "pcs", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
+            { id: 'b2', name: "Fresh Buff Patty (refridgerated)", cat: "Buff", unitOptions: ["pcs"], defaultUnit: "pcs", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
         ];
 
         function renderInputs() {
@@ -480,18 +495,22 @@
                     `Central Kitchen Production Requirement Only`;
 
                 vegHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${rangeText}</div>`;
-                if (item.hasStore && !item.isPcs) {
+                if (item.hasStore) {
+                    let unitOptionsHtml = item.unitOptions.map(u => `<option value="${u}">${u.toUpperCase()}</option>`).join('');
                     vegHtml += `
                         <div class="input-grid">
-                            <div class="input-box"><label>Store Stock (<strong style="color:var(--warning)">KG</strong>)</label><input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="0, 1, 2..." /></div>
-                            <div class="input-box"><label>Store Stock (<strong style="color:var(--warning)">GRAMS</strong>)</label><input type="number" min="0" step="50" max="950" id="stock-gm-${item.id}" class="item-input" placeholder="0, 500 etc." /></div>
+                            <div class="input-box"><label>Closing Stock</label><input type="number" min="0" step="any" id="stock-val-${item.id}" class="item-input" placeholder="Enter qty" /></div>
+                            <div class="input-box"><label>Unit</label><select id="stock-unit-${item.id}" class="item-select">${unitOptionsHtml}</select></div>
                         </div>
                     `;
-                } else if (item.hasStore && item.isPcs) {
-                    vegHtml += `<div class="input-grid"><div class="input-box" style="grid-column: span 2;"><label>Store Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label><input type="number" min="0" step="1" id="stock-kg-${item.id}" class="item-input" placeholder="Enter pieces" /></div></div>`;
                 }
                 if (item.hasCK) {
-                    vegHtml += `<div style="margin-top: 6px;"><div class="input-box"><label>CK Extra Req (<strong style="color:var(--warning)">${item.isPcs ? 'PCS' : 'KG'}</strong>)</label><input type="number" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="0 if none" /></div></div>`;
+                    vegHtml += `
+                        <div class="input-grid" style="margin-top: 6px;">
+                            <div class="input-box"><label>CK Extra Req</label><input type="number" min="0" step="0.5" id="ck-val-${item.id}" class="item-input" placeholder="0 if none" /></div>
+                            <div class="input-box"><label>Unit</label><select id="ck-unit-${item.id}" class="item-select"><option value="${item.isPcs ? 'pcs' : 'kg'}">${(item.isPcs ? 'pcs' : 'kg').toUpperCase()}</option></select></div>
+                        </div>
+                    `;
                 }
                 vegHtml += `</div>`;
             });
@@ -506,12 +525,14 @@
                 masterInventory.filter(i => i.cat === cat).forEach(item => {
                     const min = isWeekendMode ? item.weMin : item.wdMin;
                     const max = isWeekendMode ? item.weMax : item.wdMax;
+                    let unitOptionsHtml = item.unitOptions.map(u => `<option value="${u}" ${u === item.defaultUnit ? 'selected' : ''}>${u.toUpperCase()}</option>`).join('');
+                    
                     chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
                     chickHtml += `
-                        <div class="input-grid"><div class="input-box" style="grid-column: span 2;">
-                            <label>Closing Stock (${item.unit.toUpperCase()})</label>
-                            <input type="number" min="0" step="1" id="stock-${item.id}" class="item-input" placeholder="Enter stock" />
-                        </div></div>
+                        <div class="input-grid">
+                            <div class="input-box"><label>Closing Stock</label><input type="number" min="0" step="any" id="stock-val-${item.id}" class="item-input" placeholder="Enter stock" /></div>
+                            <div class="input-box"><label>Unit</label><select id="stock-unit-${item.id}" class="item-select">${unitOptionsHtml}</select></div>
+                        </div>
                     `;
                     chickHtml += `</div>`;
                 });
@@ -524,12 +545,14 @@
             masterInventory.filter(i => i.cat === "Buff").forEach(item => {
                 const min = isWeekendMode ? item.weMin : item.wdMin;
                 const max = isWeekendMode ? item.weMax : item.wdMax;
+                let unitOptionsHtml = item.unitOptions.map(u => `<option value="${u}">${u.toUpperCase()}</option>`).join('');
+                
                 buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
                 buffHtml += `
-                    <div class="input-grid"><div class="input-box" style="grid-column: span 2;">
-                        <label>Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
-                        <input type="number" min="0" step="1" id="stock-${item.id}" class="item-input" placeholder="Enter pcs" />
-                    </div></div>
+                    <div class="input-grid">
+                        <div class="input-box"><label>Closing Stock</label><input type="number" min="0" step="1" id="stock-val-${item.id}" class="item-input" placeholder="Enter pcs" /></div>
+                        <div class="input-box"><label>Unit</label><select id="stock-unit-${item.id}" class="item-select">${unitOptionsHtml}</select></div>
+                    </div>
                 `;
                 buffHtml += `</div>`;
             });
@@ -621,16 +644,37 @@
             return val.toFixed(1).replace('.0', '') + " kg";
         }
 
+        // Helper to parse input value based on selected unit
+        function parseStockValue(itemId, isPcsDefault) {
+            let valInput = document.getElementById(`stock-val-${itemId}`);
+            let unitSelect = document.getElementById(`stock-unit-${itemId}`);
+            if (!valInput || valInput.value === "") return null;
+            
+            let val = parseFloat(valInput.value) || 0;
+            let unit = unitSelect ? unitSelect.value : (isPcsDefault ? 'pcs' : 'kg');
+
+            if (unit === 'gm') return val / 1000;
+            if (unit === 'trays') return val * 30; // 1 tray = 30 eggs
+            return val; // kg, pcs, portions
+        }
+
+        function parseCkValue(itemId, isPcsDefault) {
+            let valInput = document.getElementById(`ck-val-${itemId}`);
+            if (!valInput || valInput.value === "") return 0;
+            return parseFloat(valInput.value) || 0;
+        }
+
+        // --- SECTION PROCESSING LOGIC ---
         function processSection(sectionName) {
             let box = document.getElementById('section-result-box');
             box.innerHTML = '';
 
             if (sectionName === 'veg') {
                 for (let item of masterInventory.filter(i => i.cat === "Vegetables" && i.hasStore)) {
-                    let kgInput = document.getElementById(`stock-kg-${item.id}`).value;
-                    if (kgInput === "") {
+                    let valInput = document.getElementById(`stock-val-${item.id}`);
+                    if (valInput.value === "") {
                         alert(`⚠️ Store stock enter karna zaroori hai: ${item.name}`);
-                        document.getElementById(`stock-kg-${item.id}`).focus();
+                        valInput.focus();
                         return;
                     }
                 }
@@ -643,13 +687,11 @@
                     const max = isWeekendMode ? item.weMax : item.wdMax;
 
                     if (item.hasStore) {
-                        let kgVal = parseFloat(document.getElementById(`stock-kg-${item.id}`).value) || 0;
-                        let gmVal = item.isPcs ? 0 : (parseFloat(document.getElementById(`stock-gm-${item.id}`).value) || 0);
-                        closingStockVal = kgVal + (gmVal / 1000);
+                        closingStockVal = parseStockValue(item.id, item.isPcs);
                         storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
                     }
 
-                    let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
+                    let ckVal = item.hasCK ? parseCkValue(item.id, item.isPcs) : 0;
                     let totalNeeded = storeOrder + ckVal;
                     let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
 
@@ -685,17 +727,17 @@
 
             } else if (sectionName === 'chicken') {
                 for (let item of masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs")) {
-                    let val = document.getElementById(`stock-${item.id}`).value;
-                    if (val === "") {
+                    let valInput = document.getElementById(`stock-val-${item.id}`);
+                    if (valInput.value === "") {
                         alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
-                        document.getElementById(`stock-${item.id}`).focus();
+                        valInput.focus();
                         return;
                     }
                 }
 
                 let rawStock = {};
                 masterInventory.filter(i => i.cat === "Chicken - Raw Stock").forEach(item => {
-                    rawStock[item.id] = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    rawStock[item.id] = parseStockValue(item.id, false);
                 });
 
                 let chickenOrderItems = [];
@@ -704,7 +746,7 @@
                 masterInventory.filter(i => i.isMarinated).forEach(item => {
                     const min = isWeekendMode ? item.weMin : item.wdMin;
                     const max = isWeekendMode ? item.weMax : item.wdMax;
-                    let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    let stock = parseStockValue(item.id, item.unit === 'pcs');
                     let deficit = (stock <= min) ? (max - stock) : 0;
 
                     if (deficit > 0) {
@@ -759,12 +801,12 @@
                 });
 
                 let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
-                let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
+                let fatStock = parseStockValue('raw_fat', false);
                 if (totalKheemaOrdered > 0 && fatStock === 0) {
                     chickenOrderItems.push({ name: "FAT KHEEMA", qty: 0.25, unit: "kg", isFatFormatted: "250 gm" });
                 }
 
-                let eggsStock = parseFloat(document.getElementById(`stock-eggs`).value) || 0;
+                let eggsStock = parseStockValue('eggs', true);
                 let eggsOrderNeeded = (eggsStock <= 20);
                 let eggsTrayOrder = eggsOrderNeeded ? Math.ceil((60 - eggsStock) / 30) * 30 : 0;
 
@@ -829,16 +871,16 @@
 
             } else if (sectionName === 'buff') {
                 for (let item of masterInventory.filter(i => i.cat === "Buff")) {
-                    let val = document.getElementById(`stock-${item.id}`).value;
-                    if (val === "") {
+                    let valInput = document.getElementById(`stock-val-${item.id}`);
+                    if (valInput.value === "") {
                         alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
-                        document.getElementById(`stock-${item.id}`).focus();
+                        valInput.focus();
                         return;
                     }
                 }
 
-                let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
-                let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
+                let frozenBuff = parseStockValue('b1', true);
+                let freshBuff = parseStockValue('b2', true);
                 let buffOrderNeeded = ((frozenBuff + freshBuff) <= 10);
 
                 if (!buffOrderNeeded) {
@@ -887,12 +929,10 @@
                 const max = isWeekendMode ? item.weMax : item.wdMax;
 
                 if (item.hasStore) {
-                    let kgVal = parseFloat(document.getElementById(`stock-kg-${item.id}`).value) || 0;
-                    let gmVal = item.isPcs ? 0 : (parseFloat(document.getElementById(`stock-gm-${item.id}`).value) || 0);
-                    closingStockVal = kgVal + (gmVal / 1000);
+                    closingStockVal = parseStockValue(item.id, item.isPcs);
                     storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
                 }
-                let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
+                let ckVal = item.hasCK ? parseCkValue(item.id, item.isPcs) : 0;
                 let totalNeeded = storeOrder + ckVal;
                 let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
                 let stockStr = item.hasStore ? (item.isPcs ? closingStockVal + " pcs" : closingStockVal + " kg") : "N/A";
@@ -902,12 +942,12 @@
             });
 
             masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
-                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                let stock = parseStockValue(item.id, item.unit === 'pcs');
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
             });
 
-            let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
-            let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
+            let frozenBuff = parseStockValue('b1', true);
+            let freshBuff = parseStockValue('b2', true);
             masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
             masterAuditLines.push(`• *Fresh Buff Patty* | Stock: ${freshBuff} pcs`);
 
