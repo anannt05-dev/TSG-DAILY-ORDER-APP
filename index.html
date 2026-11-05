@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Serial Griller - Smart Ordering System</title>
+    
+    <!-- Open Graph / WhatsApp Preview Meta Tags -->
+    <meta property="og:title" content="The Serial Griller - Smart Ordering System">
+    <meta property="og:description" content="Daily Store Order & Inventory Management System">
+    <meta property="og:type" content="website">
+
     <style>
         :root {
             --primary: #d32f2f;
@@ -506,19 +512,16 @@
             "🔥 Weekend Mode Active (Higher Min/Max)" : 
             "🟢 Weekday Mode Active (Standard Min/Max)";
 
-        // Regular Sesame Bun Min: Weekday 60, Weekend 80 (60 + 20)
         function getSesameMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
             return wknd ? 80 : 60;
         }
 
-        // Fries Min: Weekday 2 pkt, Weekend 3 pkt
         function getFriesMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
             return wknd ? 3 : 2;
         }
 
-        // Wedges Min: 1 pkt (all days)
         function getWedgesMinForDay(dayIndex) {
             return 1;
         }
@@ -727,7 +730,7 @@
                 </div>
             `;
 
-            // In-House Prep (Onion Tangles & Mozzarella Sticks)
+            // In-House Prep
             const prepCont = document.getElementById('prep-inputs-list');
             let otMin = isWeekendMode ? 7 : 5;
             let otMax = isWeekendMode ? 14 : 10;
@@ -846,7 +849,6 @@
             return val.toFixed(1).replace('.0', '') + " kg";
         }
 
-        // --- BUFF SAFEGUARD POPUP TRIGGER ---
         function triggerBuffWarningBeforeGenerate() {
             for (let item of masterInventory.filter(i => i.cat === "Buff")) {
                 let valInput = document.getElementById(`stock-${item.id}`);
@@ -868,7 +870,6 @@
             processSection('buff');
         }
 
-        // --- SECTION PROCESSING LOGIC ---
         function processSection(sectionName) {
             let box = document.getElementById('section-result-box');
             box.innerHTML = '';
@@ -1182,7 +1183,6 @@
                 let friesTwoDayMin = friesMinToday + friesMinTomorrow;
 
                 let friesShortfall = friesTwoDayMin - totalFriesAvailable;
-                // MOQ for Fries is 1 box = 5 pkts
                 let friesOrderQty = friesShortfall > 0 ? Math.ceil(friesShortfall / 5) * 5 : 0;
                 if (friesShortfall > 0 && friesOrderQty < 5) friesOrderQty = 5;
                 localStorage.setItem('tsg_last_fries_order', friesOrderQty);
@@ -1206,7 +1206,6 @@
                 let wedgesTwoDayMin = wedgesMinToday + wedgesMinTomorrow;
 
                 let wedgesShortfall = wedgesTwoDayMin - totalWedgesAvailable;
-                // MOQ for Wedges is 2 pkts
                 let wedgesOrderQty = wedgesShortfall > 0 ? Math.max(Math.ceil(wedgesShortfall / 2) * 2, 2) : 0;
                 localStorage.setItem('tsg_last_wedges_order', wedgesOrderQty);
 
@@ -1265,7 +1264,6 @@
                     prepInstructions.push(`• Mozzarella Sticks: Stock low hai (${msStock} portions). Kripya naye *${Math.ceil(msNeeded)} portions* Mozzarella Sticks bana dein.`);
                 }
 
-                // Mozzarella block pre-prep trigger if <= 10 portions
                 if (msStock <= 10) {
                     prepInstructions.push(`⚠️ *Mozzarella Pre-Prep:* Mozzarella block ko freezer se nikaal kar fridge mein rakh dein taaki woh soft ho jaye aur cut karne mein asani ho.`);
                 }
@@ -1312,7 +1310,6 @@
 
             let masterAuditLines = [];
 
-            // Veg
             masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
                 let storeOrder = 0;
                 let closingStockVal = 0;
@@ -1333,19 +1330,16 @@
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stockStr} | CK Req: ${ckVal} | Order: *${orderedStr}*`);
             });
 
-            // Chicken & Eggs
             masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
                 let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
             });
 
-            // Buff
             let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
             let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
             masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
             masterAuditLines.push(`• *Fresh Buff Patty* | Stock: ${freshBuff} pcs`);
 
-            // Buns Orders Audit
             let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value) || 0;
             let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
             let sesameTotal = sesameStock + sesamePending;
@@ -1361,7 +1355,6 @@
             let multiAuditOrder = multiNeeded > 0 ? Math.max(multiNeeded, 30) : 0;
             masterAuditLines.push(`• *Multigrain Bun* | Stock: ${multiStock} pcs | Pending: ${multiPending} pcs | Order: *${multiAuditOrder > 0 ? multiAuditOrder + ' pcs' : 'Sufficient'}*`);
 
-            // Fries & Wedges Audit
             let friesPkt = parseFloat(document.getElementById('stock-fries-pkt').value) || 0;
             let friesKg = parseFloat(document.getElementById('stock-fries-kg').value) || 0;
             let friesPending = parseFloat(document.getElementById('pending-delivery-fries').value) || 0;
@@ -1380,7 +1373,6 @@
             let wedgesAuditOrder = wedgesShort > 0 ? Math.max(Math.ceil(wedgesShort / 2) * 2, 2) : 0;
             masterAuditLines.push(`• *Wedges* | Stock: ${wedgesPkt} pkt ${wedgesKg}kg | Pending: ${wedgesPending} pkt | Order: *${wedgesAuditOrder > 0 ? wedgesAuditOrder + ' pkts' : 'Sufficient'}*`);
 
-            // Prep Audit
             let otStock = parseFloat(document.getElementById('stock-onion-tangles').value) || 0;
             let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks').value) || 0;
             masterAuditLines.push(`• *Onion Tangles* | Stock: ${otStock} portions`);
