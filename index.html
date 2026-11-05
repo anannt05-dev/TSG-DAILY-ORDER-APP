@@ -346,6 +346,14 @@
             <div id="status-buff" style="font-size: 1.2rem;">➡️</div>
         </div>
 
+        <div id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
+            <div>
+                <div class="dash-title">🍞 Buns Orders</div>
+                <div class="dash-sub">Regular Sesame Bun & Multigrain Bun</div>
+            </div>
+            <div id="status-buns" style="font-size: 1.2rem;">➡️</div>
+        </div>
+
         <button id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
     </div>
 
@@ -381,7 +389,17 @@
         <div id="buff-inputs-list"></div>
         <div class="nav-buttons">
             <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('buff')">Generate Buff Order 🚀</button>
+            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="triggerBuffWarningBeforeGenerate()">Generate Buff Order 🚀</button>
+        </div>
+    </div>
+
+    <!-- 4. BUNS VIEW -->
+    <div id="buns-section" class="category-view">
+        <div class="section-title">Buns Orders (Smart Order)</div>
+        <div id="buns-inputs-list"></div>
+        <div class="nav-buttons">
+            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
+            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('buns')">Generate Buns Order 🚀</button>
         </div>
     </div>
 
@@ -405,6 +423,20 @@
         </div>
     </div>
 
+    <!-- BUFF SAFEGUARD MODAL (ROMAN HINDI) -->
+    <div id="buff-safeguard-modal" class="modal-overlay">
+        <div class="modal-content" style="border-color: var(--primary); background: #3a1c1c;">
+            <h3 style="color: #ff8a80;">⚠️ ZARURI WARNING (BUFF SAFEGUARD)</h3>
+            <p style="font-size: 0.95rem; line-height: 1.5; color: #ffccbc;">
+                Raat ko closing ke waqt fridge mein buff zaroor check karein! Agar buff se badbu aa rahi hai ya uska rang kala, grey ya green ho gaya hai, toh turant use 5 inch ring mein smash karke freeze kar dein.
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeBuffSafeguardModal()">Ruko / Cancel</button>
+                <button class="modal-btn btn-confirm" style="background: var(--primary);" onclick="confirmBuffAndGenerate()">Check Kar Liya, Aage Badho</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- 10 AM RESET & OPERATIONAL DATE LOGIC ---
         function getOperationalDateKey() {
@@ -423,19 +455,26 @@
             localStorage.setItem('status_veg', 'false');
             localStorage.setItem('status_chicken', 'false');
             localStorage.setItem('status_buff', 'false');
+            localStorage.setItem('status_buns', 'false');
         }
 
-        const todayDay = new Date().getDay();
+        const todayDay = new Date().getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
         const isWeekendMode = (todayDay === 5 || todayDay === 6 || todayDay === 0);
         document.getElementById('day-badge').innerText = isWeekendMode ? 
             "🔥 Weekend Mode Active (Higher Min/Max)" : 
             "🟢 Weekday Mode Active (Standard Min/Max)";
 
+        // Helper for Day Min Requirement for Regular Sesame Bun (Weekday: 50, Weekend: 75)
+        function getMinForDay(dayIndex) {
+            let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
+            return wknd ? 75 : 50;
+        }
+
         const masterInventory = [
             // --- VEGETABLES ---
             { id: 'v1', name: "Onions", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
             { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 'v3', name: "Iceberg Lettuce fresh", cat: "Vegetables", unit: "KG", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
+            { id: 'v3', name: "Iceberg Lettuce Fresh", cat: "Vegetables", unit: "KG", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
             { id: 'v4', name: "Green Chilli", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
             { id: 'v5', name: "Lemon", cat: "Vegetables", unit: "PCS", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
             { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
@@ -452,21 +491,21 @@
             { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "PCS", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
             { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20 },
             { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
-            { id: 'c4', name: "Chicken Crunchies Coated and prepped", cat: "Chicken - Marinated", unit: "PORTIONS", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
+            { id: 'c4', name: "Chicken Crunchies Coated and Prepped", cat: "Chicken - Marinated", unit: "PORTIONS", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
             { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "PCS", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
 
-            { id: 'raw_wings', name: "RAW WINGS", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "WINGS" },
-            { id: 'raw_supreme', name: "RAW SUPREME", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "SUPREME" },
-            { id: 'raw_thigh', name: "RAW THIGH BONELESS", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "THIGH BONELESS", isThigh: true },
-            { id: 'raw_kheema', name: "CHICKEN BREAST KHEEMA", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN BREAST KHEEMA" },
-            { id: 'raw_popcorn', name: "CHICKEN POPCORN CUT", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN POPCORN CUT" },
+            { id: 'raw_wings', name: "Raw Wings", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "WINGS" },
+            { id: 'raw_supreme', name: "Raw Supreme", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, vendorName: "SUPREME" },
+            { id: 'raw_thigh', name: "Raw Thigh Boneless", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "THIGH BONELESS", isThigh: true },
+            { id: 'raw_kheema', name: "Chicken Breast Kheema", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN BREAST KHEEMA" },
+            { id: 'raw_popcorn', name: "Chicken Popcorn Cut", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 2, weMin: 0, weMax: 2, vendorName: "CHICKEN POPCORN CUT" },
             { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "KG", wdMin: 0, wdMax: 1, weMin: 0, weMax: 1, isFat: true, vendorName: "FAT KHEEMA" },
 
             { id: 'eggs', name: "Eggs", cat: "Eggs", unit: "PCS", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
 
             // --- BUFF ---
             { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "PCS", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
-            { id: 'b2', name: "Fresh Buff Patty (refridgerated)", cat: "Buff", unit: "PCS", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
+            { id: 'b2', name: "Fresh Buff Patty (Refrigerated)", cat: "Buff", unit: "PCS", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true }
         ];
 
         function renderInputs() {
@@ -477,7 +516,7 @@
                 const min = isWeekendMode ? item.weMin : item.wdMin;
                 const max = isWeekendMode ? item.weMax : item.wdMax;
                 let rangeText = item.hasStore ? 
-                    `Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span>` : 
+                    `Target Range: Min <span class="unit-badge">${min}${item.unit}</span> / Max <span class="unit-badge">${max}${item.unit}</span>` : 
                     `Central Kitchen Production Requirement Only`;
 
                 vegHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${rangeText}</div>`;
@@ -485,8 +524,8 @@
                     vegHtml += `
                         <div class="input-grid">
                             <div class="input-box">
-                                <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong> or <strong style="color:var(--warning)">GM</strong> (agar gram mein hai)</label>
-                                <input type="number" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}** / Gm" />
+                                <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong> (or Gm)</label>
+                                <input type="number" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
                             </div>
                         </div>
                     `;
@@ -514,7 +553,7 @@
                 masterInventory.filter(i => i.cat === cat).forEach(item => {
                     const min = isWeekendMode ? item.weMin : item.wdMin;
                     const max = isWeekendMode ? item.weMax : item.wdMax;
-                    chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
+                    chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min}${item.unit}</span> / Max <span class="unit-badge">${max}${item.unit}</span></div>`;
                     chickHtml += `
                         <div class="input-grid">
                             <div class="input-box">
@@ -534,7 +573,7 @@
             masterInventory.filter(i => i.cat === "Buff").forEach(item => {
                 const min = isWeekendMode ? item.weMin : item.wdMin;
                 const max = isWeekendMode ? item.weMax : item.wdMax;
-                buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
+                buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min}${item.unit}</span> / Max <span class="unit-badge">${max}${item.unit}</span></div>`;
                 buffHtml += `
                     <div class="input-grid">
                         <div class="input-box">
@@ -547,6 +586,45 @@
             });
             buffCont.innerHTML = buffHtml;
 
+            // Buns Orders (Regular Sesame Bun & Multigrain Bun)
+            const bunsCont = document.getElementById('buns-inputs-list');
+            let lastSesameBunOrder = localStorage.getItem('tsg_last_sesame_bun_order') || 0;
+            let lastMultiBunOrder = localStorage.getItem('tsg_last_multi_bun_order') || 0;
+            let minToday = getMinForDay(todayDay);
+            let minTomorrow = getMinForDay((todayDay + 1) % 7);
+
+            bunsCont.innerHTML = `
+                <div class="item-card">
+                    <div class="item-name">Regular Sesame Bun</div>
+                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Today Min: ${minToday}, Tomorrow Min:${minTomorrow})</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Closing Stock of Regular Sesame Bun in <strong style="color:var(--warning)">PCS</strong></label>
+                            <input type="number" min="0" step="1" id="stock-sesame-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
+                            <input type="number" min="0" step="1" id="pending-delivery-sesame" class="item-input" value="${lastSesameBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Multigrain Bun</div>
+                    <div class="item-sub">Rule: Min 6 pcs, Max 30 pcs | MOQ 30 pcs</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Closing Stock of Multigrain Bun in <strong style="color:var(--warning)">PCS</strong></label>
+                            <input type="number" min="0" step="1" id="stock-multi-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
+                            <input type="number" min="0" step="1" id="pending-delivery-multi" class="item-input" value="${lastMultiBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                        </div>
+                    </div>
+                </div>
+            `;
+
             updateDashboardStatus();
         }
 
@@ -558,89 +636,10 @@
                 pendingSectionKey = sectionKey;
                 document.getElementById('reset-modal').style.display = 'flex';
             } else {
-                openSection(`${sectionKey}-section`);
-            }
-        }
-
-        function closeResetModal() {
-            document.getElementById('reset-modal').style.display = 'none';
-            pendingSectionKey = '';
-        }
-
-        function confirmResetSection() {
-            if (pendingSectionKey) {
-                localStorage.setItem(`status_${pendingSectionKey}`, 'false');
-                let sectionId = `${pendingSectionKey}-section`;
-                closeResetModal();
-                openSection(sectionId);
-            }
-        }
-
-        function openSection(sectionId) {
-            document.getElementById('home-dashboard').style.display = 'none';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            document.getElementById('results-tab').style.display = 'none';
-            document.getElementById(sectionId).style.display = 'block';
-            window.scrollTo(0,0);
-        }
-
-        function goHome() {
-            document.getElementById('home-dashboard').style.display = 'block';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            document.getElementById('results-tab').style.display = 'none';
-            updateDashboardStatus();
-            window.scrollTo(0,0);
-        }
-
-        function updateDashboardStatus() {
-            let vegDone = localStorage.getItem('status_veg') === 'true';
-            let chickDone = localStorage.getItem('status_chicken') === 'true';
-            let buffDone = localStorage.getItem('status_buff') === 'true';
-
-            setCardStatus('card-veg', 'status-veg', vegDone);
-            setCardStatus('card-chicken', 'status-chicken', chickDone);
-            setCardStatus('card-buff', 'status-buff', buffDone);
-
-            let btn = document.getElementById('btn-master-submit');
-            if (vegDone && chickDone && buffDone) {
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
-            } else {
-                btn.style.opacity = '0.5';
-                btn.style.pointerEvents = 'none';
-            }
-        }
-
-        function setCardStatus(cardId, statusId, isDone) {
-            let card = document.getElementById(cardId);
-            let status = document.getElementById(statusId);
-            if (isDone) {
-                card.classList.add('completed');
-                status.innerText = "✅ Done";
-            } else {
-                card.classList.remove('completed');
-                status.innerText = "➡️";
-            }
-        }
-
-        function roundToNearestHalf(val) {
-            return Math.ceil(val / 0.5) * 0.5;
-        }
-
-        function formatVegQty(val, isPcs) {
-            if (isPcs) return Math.ceil(val) + " pcs";
-            if (val < 1) return Math.round(val * 1000) + " gm";
-            return val.toFixed(1).replace('.0', '') + " kg";
-        }
-
-        // --- SECTION PROCESSING LOGIC ---
-        function processSection(sectionName) {
-            let box = document.getElementById('section-result-box');
-            box.innerHTML = '';
-
-            if (sectionName === 'veg') {
-                for (let item of masterInventory.filter(i => i.cat === "Vegetables" && i.hasStore)) {
-                    let valInput = document.getElementById(`stock-${item.id}`);
+                openSection(`${sectionKey}-section`); } }  function closeResetModal() { document.getElementById('reset-modal').style.display = 'none'; pendingSectionKey = ''; }  function confirmResetSection() { if (pendingSectionKey) { localStorage.setItem(`status_${pendingSectionKey}`, 'false');
+                let sectionId = `${pendingSectionKey}-section`; closeResetModal(); openSection(sectionId); } }  function openSection(sectionId) { document.getElementById('home-dashboard').style.display = 'none'; document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none'); document.getElementById('results-tab').style.display = 'none'; document.getElementById(sectionId).style.display = 'block'; window.scrollTo(0,0); }  function goHome() { document.getElementById('home-dashboard').style.display = 'block'; document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none'); document.getElementById('results-tab').style.display = 'none'; updateDashboardStatus(); window.scrollTo(0,0); }  function updateDashboardStatus() { let vegDone = localStorage.getItem('status_veg') === 'true'; let chickDone = localStorage.getItem('status_chicken') === 'true'; let buffDone = localStorage.getItem('status_buff') === 'true'; let bunsDone = localStorage.getItem('status_buns') === 'true';  setCardStatus('card-veg', 'status-veg', vegDone); setCardStatus('card-chicken', 'status-chicken', chickDone); setCardStatus('card-buff', 'status-buff', buffDone); setCardStatus('card-buns', 'status-buns', bunsDone);  let btn = document.getElementById('btn-master-submit'); if (vegDone && chickDone && buffDone && bunsDone) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; } else { btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; } }  function setCardStatus(cardId, statusId, isDone) { let card = document.getElementById(cardId); let status = document.getElementById(statusId); if (isDone) { card.classList.add('completed'); status.innerText = "✅ Done"; } else { card.classList.remove('completed'); status.innerText = "➡️"; } }  function roundToNearestHalf(val) { return Math.ceil(val / 0.5) * 0.5; }  function formatVegQty(val, isPcs) { if (isPcs) return Math.ceil(val) + " pcs"; if (val < 1) return Math.round(val * 1000) + " gm"; return val.toFixed(1).replace('.0', '') + " kg"; }  // --- BUFF SAFEGUARD POPUP TRIGGER --- function triggerBuffWarningBeforeGenerate() { for (let item of masterInventory.filter(i => i.cat === "Buff")) { let valInput = document.getElementById(`stock-${item.id}`);
+                if (valInput.value === "") {
+                    alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`); valInput.focus(); return; } } document.getElementById('buff-safeguard-modal').style.display = 'flex'; }  function closeBuffSafeguardModal() { document.getElementById('buff-safeguard-modal').style.display = 'none'; }  function confirmBuffAndGenerate() { closeBuffSafeguardModal(); processSection('buff'); }  // --- SECTION PROCESSING LOGIC --- function processSection(sectionName) { let box = document.getElementById('section-result-box'); box.innerHTML = '';  if (sectionName === 'veg') { for (let item of masterInventory.filter(i => i.cat === "Vegetables" && i.hasStore)) { let valInput = document.getElementById(`stock-${item.id}`);
                     if (valInput.value === "") {
                         alert(`⚠️ Store stock enter karna zaroori hai: ${item.name}`);
                         valInput.focus();
@@ -656,15 +655,7 @@
                     const max = isWeekendMode ? item.weMax : item.wdMax;
 
                     if (item.hasStore) {
-                        let rawVal = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                        // If unit is KG and user entered grams (e.g. 500 instead of 0.5), or if they entered direct KG
-                        // By default, assume standard unit. If item unit is KG and value > par max or user enters > 50, check if grams.
-                        // Standard convention: if item unit is KG, let's treat values like 500 as grams if explicitly indicated, or standard float.
-                        closingStockVal = rawVal;
-                        storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
-                    }
-
-                    let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
+                        closingStockVal = parseFloat(document.getElementById(`stock-${item.id}`).value) \vert{}\vert{} 0; storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0; }  let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
                     let totalNeeded = storeOrder + ckVal;
                     let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
 
@@ -683,271 +674,4 @@
                 } else {
                     let vegOrderText = `*Order for The Serial Griller Lokhandwala*\n\n`;
                     vegOrderItems.forEach(i => { vegOrderText += `• ${i.name}: *${i.formattedQty}*\n`; });
-                    const vegWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(vegOrderText)}`;
-
-                    box.innerHTML = `
-                        <div class="supplier-box">
-                            <div class="supplier-title">📦 Send Order to Vegetable TSG</div>
-                            <div class="instruction-text">
-                                👉 <strong>Kaise bhejein:</strong> "Send Vendor Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>VEGETABLE TSG</strong> search karo aur jab group aa jaye toh wahan message send kar do.
-                            </div>
-                            <div class="order-list">${vegOrderText}</div>
-                            <a href="${vegWhatsappUrl}" target="_blank" class="btn-whatsapp">Send Vendor Order via WhatsApp</a>
-                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('veg')">Done & Go to Home Page ✅</button>
-                        </div>
-                    `;
-                }
-
-            } else if (sectionName === 'chicken') {
-                for (let item of masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs")) {
-                    let valInput = document.getElementById(`stock-${item.id}`);
-                    if (valInput.value === "") {
-                        alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
-                        valInput.focus();
-                        return;
-                    }
-                }
-
-                let rawStock = {};
-                masterInventory.filter(i => i.cat === "Chicken - Raw Stock").forEach(item => {
-                    rawStock[item.id] = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                });
-
-                let chickenOrderItems = [];
-                let marinateInstructions = [];
-
-                masterInventory.filter(i => i.isMarinated).forEach(item => {
-                    const min = isWeekendMode ? item.weMin : item.wdMin;
-                    const max = isWeekendMode ? item.weMax : item.wdMax;
-                    let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                    let deficit = (stock <= min) ? (max - stock) : 0;
-
-                    if (deficit > 0) {
-                        if (item.isBatchPatty) {
-                            let batchesNeeded = Math.ceil(deficit / 26);
-                            let kheemaNeeded = batchesNeeded * 2;
-                            let availableKheema = rawStock['raw_kheema'] || 0;
-
-                            if (availableKheema >= kheemaNeeded) {
-                                rawStock['raw_kheema'] -= kheemaNeeded;
-                                marinateInstructions.push(`• Raw Breast Kheema *${kheemaNeeded} kg* aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
-                            } else {
-                                let shortfall = kheemaNeeded - availableKheema;
-                                rawStock['raw_kheema'] = 0;
-                                if (shortfall > 0) {
-                                    chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: Math.ceil(shortfall), unit: "kg" });
-                                }
-                                marinateInstructions.push(`• Raw Breast Kheema aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
-                            }
-                        } else {
-                            let rawKey = item.rawKey;
-                            let yieldRate = item.yieldPerKg;
-                            let rawAvailable = rawStock[rawKey] || 0;
-                            let rawKgNeeded = deficit / yieldRate;
-                            let rawItemObj = masterInventory.find(i => i.id === rawKey);
-
-                            if (rawAvailable >= rawKgNeeded) {
-                                rawStock[rawKey] -= rawKgNeeded;
-                                let usedKgRounded = Math.ceil(rawKgNeeded);
-                                marinateInstructions.push(`• Raw ${rawItemObj.name} *${usedKgRounded} kg* rakha hai fridge me, marinate kar dena usko.`);
-                            } else {
-                                let shortfallKg = rawKgNeeded - rawAvailable;
-                                rawStock[rawKey] = 0;
-                                let orderedKg = Math.ceil(shortfallKg);
-                                if (orderedKg > 0) {
-                                    chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
-                                }
-                                marinateInstructions.push(`• Raw ${rawItemObj.name} rakha hai fridge me, marinate kar dena usko.`);
-                            }
-                        }
-                    }
-                });
-
-                masterInventory.filter(i => i.cat === "Chicken - Raw Stock" && !i.isFat).forEach(item => {
-                    let stock = rawStock[item.id];
-                    const min = isWeekendMode ? item.weMin : item.wdMin;
-                    const max = isWeekendMode ? item.weMax : item.wdMax;
-                    let rawNeeded = (stock <= min) ? (max - stock) : 0;
-                    if (rawNeeded > 0) {
-                        chickenOrderItems.push({ name: item.vendorName, qty: Math.ceil(rawNeeded), unit: item.unit, isThigh: item.isThigh });
-                    }
-                });
-
-                let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
-                let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
-                if (totalKheemaOrdered > 0 && fatStock === 0) {
-                    chickenOrderItems.push({ name: "FAT KHEEMA", qty: 0.25, unit: "kg", isFatFormatted: "250 gm" });
-                }
-
-                let eggsStock = parseFloat(document.getElementById(`stock-eggs`).value) || 0;
-                let eggsOrderNeeded = (eggsStock <= 20);
-                let eggsTrayOrder = eggsOrderNeeded ? Math.ceil((60 - eggsStock) / 30) * 30 : 0;
-
-                let consolidatedChicken = {};
-                chickenOrderItems.forEach(i => {
-                    if (!consolidatedChicken[i.name]) consolidatedChicken[i.name] = { qty: 0, isThigh: i.isThigh, isFatFormatted: i.isFatFormatted };
-                    consolidatedChicken[i.name].qty += i.qty;
-                });
-
-                let chickenItemsList = [];
-                for (const [name, data] of Object.entries(consolidatedChicken)) {
-                    if (data.isFatFormatted) {
-                        chickenItemsList.push(`• ${name}: *${data.isFatFormatted}*`);
-                    } else if (data.isThigh) {
-                        chickenItemsList.push(`• ${name}: *${data.qty} kg* (${data.qty * 10} pcs of 100g proper weight proper size: ${data.qty} kg = ${data.qty * 10} pcs)`);
-                    } else {
-                        chickenItemsList.push(`• ${name}: *${data.qty} kg*`);
-                    }
-                }
-
-                let hasChickenOrder = chickenItemsList.length > 0;
-                let hasPrep = marinateInstructions.length > 0 || eggsOrderNeeded;
-
-                if (!hasChickenOrder && !hasPrep) {
-                    box.innerHTML = `
-                        <div class="supplier-box" style="text-align:center; padding:20px;">
-                            <h3>👍 No order needed, we have enough stock for tomorrow (Poultry).</h3>
-                            <button class="btn-primary-action" onclick="markSectionComplete('chicken')">Go to Home Page</button>
-                        </div>
-                    `;
-                } else {
-                    let htmlContent = '';
-                    if (hasChickenOrder) {
-                        let chickenVendorText = `*Order for The Serial Griller Lokhandwala*\n\n` + chickenItemsList.join('\n') + '\n';
-                        let chickenVendorUrl = `https://wa.me/?text=${encodeURIComponent(chickenVendorText)}`;
-                        htmlContent += `
-                            <div class="supplier-box">
-                                <div class="supplier-title">🍗 Send Order to "Chicken - serial griller"</div>
-                                <div class="instruction-text">👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>Chicken - serial griller</strong> group mein bhejo.</div>
-                                <div class="order-list">${chickenVendorText}</div>
-                                <a href="${chickenVendorUrl}" target="_blank" class="btn-whatsapp">Send Chicken Order via WhatsApp</a>
-                            </div>
-                        `;
-                    }
-                    if (hasPrep) {
-                        let coordText = `📋 *CHICKEN MARINATION & PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n`;
-                        if (marinateInstructions.length > 0) coordText += marinateInstructions.join('\n');
-                        if (eggsOrderNeeded) coordText += `\n\n⚠️ *Eggs low hain!* Kripya Hyperpure se *${eggsTrayOrder} pcs* (${eggsTrayOrder/30} trays) order kar dein.`;
-                        let coordUrl = `https://wa.me/?text=${encodeURIComponent(coordText)}`;
-                        htmlContent += `
-                            <div class="supplier-box" style="border-color: #ff9800;">
-                                <div class="supplier-title" style="color: #ffb74d;">🔪 SEND THIS TO TSG COORDINATION GROUP</div>
-                                <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">👉 <strong>Kaise bhejein:</strong> Yeh instruction message <strong>TSG-coordination</strong> group par bhejo taaki staff ko pata chale kya marinate karna hai.</div>
-                                <div class="order-list">${coordText}</div>
-                                <a href="${coordUrl}" target="_blank" class="btn-whatsapp" style="background-color: #ff9800;">Send Prep to TSG-coordination</a>
-                            </div>
-                        `;
-                    }
-                    htmlContent += `<button class="btn-primary-action" onclick="markSectionComplete('chicken')">Done & Go to Home Page ✅</button>`;
-                    box.innerHTML = htmlContent;
-                }
-
-            } else if (sectionName === 'buff') {
-                for (let item of masterInventory.filter(i => i.cat === "Buff")) {
-                    let valInput = document.getElementById(`stock-${item.id}`);
-                    if (valInput.value === "") {
-                        alert(`⚠️ Stock value enter karna zaroori hai: ${item.name}`);
-                        valInput.focus();
-                        return;
-                    }
-                }
-
-                let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
-                let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
-                let buffOrderNeeded = ((frozenBuff + freshBuff) <= 10);
-
-                if (!buffOrderNeeded) {
-                    box.innerHTML = `
-                        <div class="supplier-box" style="text-align:center; padding:20px;">
-                            <h3>👍 No order needed, we have enough stock for tomorrow (Buff).</h3>
-                            <button class="btn-primary-action" onclick="markSectionComplete('buff')">Go to Home Page</button>
-                        </div>
-                    `;
-                } else {
-                    let buffOrderText = `*Order for The Serial Griller Lokhandwala*\n\n• Veal Kheema PINK Fresh and NO smell Not frozen: *2 kg*\n`;
-                    let buffVendorUrl = `https://wa.me/?text=${encodeURIComponent(buffOrderText)}`;
-                    box.innerHTML = `
-                        <div class="supplier-box">
-                            <div class="supplier-title">🥩 Send Order to "TSG beef order"</div>
-                            <div class="instruction-text">👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG beef order</strong> group mein send karo.</div>
-                            <div class="order-list">${buffOrderText}</div>
-                            <a href="${buffVendorUrl}" target="_blank" class="btn-whatsapp">Send Buff Order via WhatsApp</a>
-                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buff')">Done & Go to Home Page ✅</button>
-                        </div>
-                    `;
-                }
-            }
-
-            document.getElementById('home-dashboard').style.display = 'none';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            document.getElementById('results-tab').style.display = 'block';
-            window.scrollTo(0,0);
-        }
-
-        function markSectionComplete(sectionName) {
-            localStorage.setItem(`status_${sectionName}`, 'true');
-            goHome();
-        }
-
-        function generateMasterAuditLog() {
-            let resultsContainer = document.getElementById('section-result-box');
-            resultsContainer.innerHTML = '';
-
-            let masterAuditLines = [];
-
-            masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
-                let storeOrder = 0;
-                let closingStockVal = 0;
-                const min = isWeekendMode ? item.weMin : item.wdMin;
-                const max = isWeekendMode ? item.weMax : item.wdMax;
-
-                if (item.hasStore) {
-                    let rawVal = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                    closingStockVal = rawVal;
-                    storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
-                }
-                let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
-                let totalNeeded = storeOrder + ckVal;
-                let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
-                let stockStr = item.hasStore ? (item.isPcs ? closingStockVal + " pcs" : closingStockVal + " kg") : "N/A";
-                let orderedStr = totalNeeded > 0 ? formatVegQty(finalQty, item.isPcs) : "Sufficient";
-
-                masterAuditLines.push(`• *${item.name}* | Stock: ${stockStr} | CK Req: ${ckVal} | Order: *${orderedStr}*`);
-            });
-
-            masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
-                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
-            });
-
-            let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
-            let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
-            masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
-            masterAuditLines.push(`• *Fresh Buff Patty* | Stock: ${freshBuff} pcs`);
-
-            let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
-            masterLogText += masterAuditLines.join('\n');
-            masterLogText += `\n\n_All inventory closing stock & orders verified by Manager._`;
-            const masterLogUrl = `https://wa.me/?text=${encodeURIComponent(masterLogText)}`;
-
-            resultsContainer.innerHTML = `
-                <div class="supplier-box" style="border-color: #9c27b0;">
-                    <div class="supplier-title" style="color: #ba68c8;">📋 MASTER INVENTORY AUDIT LOG (Management Group)</div>
-                    <div class="instruction-text" style="border-left-color: #ba68c8; color: #e1bee7;">
-                        👉 <strong>Kaise bhejein:</strong> Yeh master log message management group par send karo taaki check ho sake ki saari inventory bhari gayi hai.
-                    </div>
-                    <div class="order-list">${masterLogText}</div>
-                    <a href="${masterLogUrl}" target="_blank" class="btn-audit" style="background-color: #9c27b0;">Send Master Log to Management</a>
-                </div>
-            `;
-
-            document.getElementById('home-dashboard').style.display = 'none';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            resultsContainer.style.display = 'block';
-            window.scrollTo(0,0);
-        }
-
-        renderInputs();
-    </script>
-</body>
-</html>
+                    const vegWhatsappUrl = `
