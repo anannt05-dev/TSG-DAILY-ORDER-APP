@@ -73,7 +73,16 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            min-height: 50px;
+            min-height: 60px;
+            width: 100%;
+            text-align: left;
+            color: white;
+            font-family: inherit;
+        }
+
+        .dash-card:active {
+            background-color: #2a2a2a;
+            transform: scale(0.98);
         }
 
         .dash-card.completed {
@@ -336,63 +345,63 @@
             <p style="font-size: 0.85rem; color: #aaa;">Manager: Complete sections one by one to unlock master submission.</p>
         </div>
 
-        <div id="card-veg" class="dash-card" onclick="handleCardClick('veg')">
+        <button type="button" id="card-veg" class="dash-card" onclick="handleCardClick('veg')">
             <div>
                 <div class="dash-title">🥗 Vegetables & Central Kitchen</div>
                 <div class="dash-sub">Sai Vegetables / Vegetable TSG</div>
             </div>
             <div id="status-veg" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-chicken" class="dash-card" onclick="handleCardClick('chicken')">
+        <button type="button" id="card-chicken" class="dash-card" onclick="handleCardClick('chicken')">
             <div>
                 <div class="dash-title">🍗 Poultry (Chicken & Eggs)</div>
                 <div class="dash-sub">Marinated, Raw, Eggs & Marination Prep</div>
             </div>
             <div id="status-chicken" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-buff" class="dash-card" onclick="handleCardClick('buff')">
+        <button type="button" id="card-buff" class="dash-card" onclick="handleCardClick('buff')">
             <div>
                 <div class="dash-title">🥩 Buff Section</div>
                 <div class="dash-sub">Frozen & Fresh Buff Patty, Veal Kheema</div>
             </div>
             <div id="status-buff" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
+        <button type="button" id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
             <div>
                 <div class="dash-title">🍞 Buns Orders</div>
                 <div class="dash-sub">Regular Sesame Bun & Multigrain Bun</div>
             </div>
             <div id="status-buns" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
+        <button type="button" id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
             <div>
                 <div class="dash-title">🍟 Fries & Wedges Order</div>
                 <div class="dash-sub">TSG Hyfun Fries (2-Day Lookahead)</div>
             </div>
             <div id="status-fries" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
+        <button type="button" id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
             <div>
                 <div class="dash-title">🔪 In-House Prep (Tangles & Sticks)</div>
                 <div class="dash-sub">Onion Tangles & Mozzarella Sticks Pre-Prep</div>
             </div>
             <div id="status-prep" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-sauces" class="dash-card" onclick="handleCardClick('sauces')">
+        <button type="button" id="card-sauces" class="dash-card" onclick="handleCardClick('sauces')">
             <div>
                 <div class="dash-title">🏺 Sauces Section</div>
                 <div class="dash-sub">Egg Mayo, Garlic Toum, Ex-Sauce & Tomato Salsa</div>
             </div>
             <div id="status-sauces" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <button id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
+        <button type="button" id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
     </div>
 
     <!-- 1. VEGETABLES VIEW -->
@@ -551,11 +560,4 @@
             return wknd ? 3 : 2;
         }
 
-        function getWedgesMinForDay(dayIndex) {
-            return 1;
-        }
-
-        const masterInventory = [
-            // --- VEGETABLES ---
-            { id: 'v1', name: "Onions", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
-            { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, we
+ 
