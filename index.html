@@ -519,8 +519,7 @@
             </div>
         </div>
     </div>
-
-    <script>
+        <script>
         // --- 10 AM RESET & OPERATIONAL DATE LOGIC ---
         function getOperationalDateKey() {
             let now = new Date();
@@ -559,5 +558,248 @@
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
             return wknd ? 3 : 2;
         }
+
+        function getWedgesMinForDay(dayIndex) {
+            return 1;
+        }
+
+        const masterInventory = [
+            // --- VEGETABLES ---
+            { id: 'v1', name: "Onions", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
+            { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v3', name: "Iceberg Lettuce Fresh", cat: "Vegetables", unit: "KG", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
+            { id: 'v4', name: "Green Chilli", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v5', name: "Lemon", cat: "Vegetables", unit: "PCS", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
+            { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
+            { id: 'v7', name: "Carrot", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v8', name: "Green Capsicum", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
+            { id: 'v9', name: "Ginger", cat: "Vegetables", unit: "KG", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
+            { id: 'v10', name: "Coriander", cat: "Vegetables", unit: "KG", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
+            { id: 'v11', name: "Beetroot", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
+            { id: 'v12', name: "Frozen Green Peas", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
+            { id: 'v13', name: "French Beans", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
+            { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
+
+            // --- CHICKEN & EGGS ---
+            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "PCS", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
+            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20 },
+            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
+            { id: 'c4', name: "Chicken Crunchies Coated and Prepped", cat: "Chicken - Marinated", unit: "PORTIONS", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
+            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "PCS", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
+
+            { id: 'raw_wings', name: "Raw Wings", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "WINGS" },
+            { id: 'raw_supreme', name: "Raw Supreme", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "SUPREME" },
+            { id: 'raw_thigh', name: "Raw Thigh Boneless", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "THIGH BONELESS", isThigh: true },
+            { id: 'raw_kheema', name: "Chicken Breast Kheema", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "CHICKEN BREAST KHEEMA" },
+            { id: 'raw_popcorn', name: "Chicken Popcorn Cut", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "CHICKEN POPCORN CUT" },
+            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "KG", isFat: true, vendorName: "FAT KHEEMA" },
+
+            { id: 'eggs', name: "Eggs", cat: "Eggs", unit: "PCS", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
+
+            // --- BUFF ---
+            { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "PCS", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
+            { id: 'b2', name: "Fresh Buff Patty (Refrigerated)", cat: "Buff", unit: "PCS", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true },
+
+            // --- SAUCES ---
+            { id: 's1', name: "Egg Mayo", cat: "Sauces", unit: "KG", minVal: 1, hasBottleNote: true },
+            { id: 's2', name: "Garlic Toum", cat: "Sauces", unit: "KG", minVal: 1, hasBottleNote: true },
+            { id: 's3', name: "Ex-Sauce", cat: "Sauces", unit: "GRAM", minVal: 150, maxVal: 300 },
+            { id: 's4', name: "Tomato Salsa", cat: "Sauces", unit: "GM", minVal: 180, maxVal: 500 }
+        ];
+
+        function renderInputs() {
+            // Veg
+            const vegCont = document.getElementById('veg-inputs-list');
+            let vegHtml = '';
+            masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+                let rangeText = item.hasStore ? 
+                    `Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span>` : 
+                    `Central Kitchen Production Requirement Only`;
+
+                vegHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${rangeText}</div>`;
+                if (item.hasStore) {
+                    vegHtml += `
+                        <div class="input-grid">
+                            <div class="input-box">
+                                <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong> (or Gm)</label>
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                            </div>
+                        </div>
+                    `;
+                }
+                if (item.hasCK) {
+                    vegHtml += `
+                        <div class="input-grid" style="margin-top: 8px;">
+                            <div class="input-box">
+                                <label>CK Extra Req in <strong style="color:var(--warning)">${item.unit}</strong></label>
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="Enter CK req in **${item.unit}**" />
+                            </div>
+                        </div>
+                    `;
+                }
+                vegHtml += `</div>`;
+            });
+            vegCont.innerHTML = vegHtml;
+
+            // Chicken
+            const chickCont = document.getElementById('chicken-inputs-list');
+            let chickHtml = '';
+            let chickCats = ["Chicken - Marinated", "Chicken - Raw Stock", "Eggs"];
+            chickCats.forEach(cat => {
+                chickHtml += `<div class="section-title">${cat}</div>`;
+                masterInventory.filter(i => i.cat === cat).forEach(item => {
+                    let subText = item.isEggs ? `Target Range: Min <span class="unit-badge">${isWeekendMode ? item.weMin : item.wdMin} pcs</span> / Max <span class="unit-badge">${isWeekendMode ? item.weMax : item.wdMax} pcs</span>` :
+                                  item.cat === "Chicken - Marinated" ? `Target Range: Min <span class="unit-badge">${isWeekendMode ? item.weMin : item.wdMin} ${item.unit}</span> / Max <span class="unit-badge">${isWeekendMode ? item.weMax : item.wdMax} ${item.unit}</span>` :
+                                  `Available Closing Stock in <strong style="color:var(--warning)">KG</strong>`;
+
+                    chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${subText}</div>`;
+                    chickHtml += `
+                        <div class="input-grid">
+                            <div class="input-box">
+                                <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong></label>
+                                <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="any" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                            </div>
+                        </div>
+                    `;
+                    chickHtml += `</div>`;
+                });
+            });
+            chickCont.innerHTML = chickHtml;
+
+            // Buff
+            const buffCont = document.getElementById('buff-inputs-list');
+            let buffHtml = '';
+            masterInventory.filter(i => i.cat === "Buff").forEach(item => {
+                const min = isWeekendMode ? item.weMin : item.wdMin;
+                const max = isWeekendMode ? item.weMax : item.wdMax;
+                buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">Target Range: Min <span class="unit-badge">${min} ${item.unit}</span> / Max <span class="unit-badge">${max} ${item.unit}</span></div>`;
+                buffHtml += `
+                    <div class="input-grid">
+                        <div class="input-box">
+                            <label>Enter stock in <strong style="color:var(--warning)">${item.unit}</strong></label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-${item.id}" class="item-input" placeholder="Enter stock in **${item.unit}**" />
+                        </div>
+                    </div>
+                `;
+                buffHtml += `</div>`;
+            });
+            buffCont.innerHTML = buffHtml;
+
+            // Buns Orders
+            const bunsCont = document.getElementById('buns-inputs-list');
+            let lastSesameBunOrder = localStorage.getItem('tsg_last_sesame_bun_order') || 0;
+            let lastMultiBunOrder = localStorage.getItem('tsg_last_multi_bun_order') || 0;
+            let minToday = getSesameMinForDay(todayDay);
+            let minTomorrow = getSesameMinForDay((todayDay + 1) % 7);
+
+            bunsCont.innerHTML = `
+                <div class="item-card">
+                    <div class="item-name">Regular Sesame Bun</div>
+                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Today Min: ${minToday}, Tomorrow Min: ${minTomorrow})</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Closing Stock of Regular Sesame Bun in <strong style="color:var(--warning)">PCS</strong></label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-sesame-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-sesame" class="item-input" value="${lastSesameBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Multigrain Bun</div>
+                    <div class="item-sub">Rule: Min 6 pcs, Max 30 pcs | MOQ 30 pcs</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Closing Stock of Multigrain Bun in <strong style="color:var(--warning)">PCS</strong></label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-multi-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-multi" class="item-input" value="${lastMultiBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Fries & Wedges Orders
+            const friesCont = document.getElementById('fries-inputs-list');
+            let lastFriesOrder = localStorage.getItem('tsg_last_fries_order') || 0;
+            let lastWedgesOrder = localStorage.getItem('tsg_last_wedges_order') || 0;
+            let friesMinToday = getFriesMinForDay(todayDay);
+            let friesMinTomorrow = getFriesMinForDay((todayDay + 1) % 7);
+            let wedgesMinToday = getWedgesMinForDay(todayDay);
+            let wedgesMinTomorrow = getWedgesMinForDay((todayDay + 1) % 7);
+
+            friesCont.innerHTML = `
+                <div class="item-card">
+                    <div class="item-name">Fries (TSG Hyfun Fries)</div>
+                    <div class="item-sub">Rule: MOQ 1 Box = 5 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Today Min: ${friesMinToday} pkt, Tomorrow Min: ${friesMinTomorrow} pkt)</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-fries-pkt" class="item-input" placeholder="Full packets" />
+                        </div>
+                        <div class="input-box">
+                            <label>Open Packet Remaining Weight (<strong style="color:var(--warning)">KG</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" max="2.5" step="any" id="stock-fries-kg" class="item-input" placeholder="Kg (e.g. 1.5)" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-fries" class="item-input" value="${lastFriesOrder}" placeholder="Pending pkts" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Wedges (TSG Hyfun Fries)</div>
+                    <div class="item-sub">Rule: MOQ 2 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Today Min: ${wedgesMinToday} pkt, Tomorrow Min: ${wedgesMinTomorrow} pkt)</div>
+                    <div class="input-grid" style="gap: 12px;">
+                        <div class="input-box">
+                            <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-wedges-pkt" class="item-input" placeholder="Full packets" />
+                        </div>
+                        <div class="input-box">
+                            <label>Open Packet Remaining Weight (<strong style="color:var(--warning)">KG</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" max="2.5" step="any" id="stock-wedges-kg" class="item-input" placeholder="Kg (e.g. 1)" />
+                        </div>
+                        <div class="input-box">
+                            <label>Pending Delivery Arriving Today (<strong style="color:var(--warning)">PKT</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-wedges" class="item-input" value="${lastWedgesOrder}" placeholder="Pending pkts" />
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // In-House Prep
+            const prepCont = document.getElementById('prep-inputs-list');
+            let otMin = isWeekendMode ? 7 : 5;
+            let otMax = isWeekendMode ? 14 : 10;
+            let msMin = isWeekendMode ? 10 : 8;
+            let msMax = isWeekendMode ? 20 : 15;
+
+            prepCont.innerHTML = `
+                <div class="item-card">
+                    <div class="item-name">Onion Tangles</div>
+                    <div class="item-sub">Target Range: Min <span class="unit-badge">${otMin} portions</span> / Max <span class="unit-badge">${otMax} portions</span></div>
+                    <div class="input-box">
+                        <label>Closing Stock in <strong style="color:var(--warning)">Portions</strong></label>
+                        <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-onion-tangles" class="item-input" placeholder="Enter stock in portions" />
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Mozzarella Sticks</div>
+                    <div class="item-sub">Target Range: Min <span class="unit-badge">${msMin} portions</span> / Max <span class="unit-badge">${msMax} portions</span> | Pre-prep Trigger: <= 10 portions</div>
+                    <div class="input-box">
+                        <label>Closing Stock in <strong style="color:var(--warning)">Portions</strong></label>
+                        <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-mozzarella-sticks" class="item-input" placeholder="Enter stock in portions" />
+                    </div>
+                </div>
+            `;
 
  
