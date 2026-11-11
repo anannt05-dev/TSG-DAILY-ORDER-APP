@@ -73,7 +73,16 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            min-height: 50px;
+            min-height: 60px;
+            width: 100%;
+            text-align: left;
+            color: white;
+            font-family: inherit;
+        }
+
+        .dash-card:active {
+            background-color: #2a2a2a;
+            transform: scale(0.98);
         }
 
         .dash-card.completed {
@@ -336,63 +345,63 @@
             <p style="font-size: 0.85rem; color: #aaa;">Manager: Complete sections one by one to unlock master submission.</p>
         </div>
 
-        <div id="card-veg" class="dash-card" onclick="handleCardClick('veg')">
+        <button type="button" id="card-veg" class="dash-card" onclick="handleCardClick('veg')">
             <div>
                 <div class="dash-title">🥗 Vegetables & Central Kitchen</div>
                 <div class="dash-sub">Sai Vegetables / Vegetable TSG</div>
             </div>
             <div id="status-veg" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-chicken" class="dash-card" onclick="handleCardClick('chicken')">
+        <button type="button" id="card-chicken" class="dash-card" onclick="handleCardClick('chicken')">
             <div>
                 <div class="dash-title">🍗 Poultry (Chicken & Eggs)</div>
                 <div class="dash-sub">Marinated, Raw, Eggs & Marination Prep</div>
             </div>
             <div id="status-chicken" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-buff" class="dash-card" onclick="handleCardClick('buff')">
+        <button type="button" id="card-buff" class="dash-card" onclick="handleCardClick('buff')">
             <div>
                 <div class="dash-title">🥩 Buff Section</div>
                 <div class="dash-sub">Frozen & Fresh Buff Patty, Veal Kheema</div>
             </div>
             <div id="status-buff" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
+        <button type="button" id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
             <div>
                 <div class="dash-title">🍞 Buns Orders</div>
                 <div class="dash-sub">Regular Sesame Bun & Multigrain Bun</div>
             </div>
             <div id="status-buns" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
+        <button type="button" id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
             <div>
                 <div class="dash-title">🍟 Fries & Wedges Order</div>
                 <div class="dash-sub">TSG Hyfun Fries (2-Day Lookahead)</div>
             </div>
             <div id="status-fries" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
+        <button type="button" id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
             <div>
                 <div class="dash-title">🔪 In-House Prep (Tangles & Sticks)</div>
                 <div class="dash-sub">Onion Tangles & Mozzarella Sticks Pre-Prep</div>
             </div>
             <div id="status-prep" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <div id="card-sauces" class="dash-card" onclick="handleCardClick('sauces')">
+        <button type="button" id="card-sauces" class="dash-card" onclick="handleCardClick('sauces')">
             <div>
                 <div class="dash-title">🏺 Sauces Section</div>
                 <div class="dash-sub">Egg Mayo, Garlic Toum, Ex-Sauce & Tomato Salsa</div>
             </div>
             <div id="status-sauces" style="font-size: 1.2rem;">➡️</div>
-        </div>
+        </button>
 
-        <button id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
+        <button type="button" id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
     </div>
 
     <!-- 1. VEGETABLES VIEW -->
@@ -986,7 +995,7 @@
                                 👉 <strong>Kaise bhejein:</strong> "Send Vendor Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>VEGETABLE TSG</strong> search karo aur jab group aa jaye toh wahan message send kar do.
                             </div>
                             <div class="order-list">${vegOrderText}</div>
-                            <a href="${vegWhatsappUrl}" class="btn-whatsapp">Send Vendor Order via WhatsApp</a>
+                            <a href="${vegWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('veg')">Send Vendor Order via WhatsApp</a>
                             <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('veg')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
@@ -1010,7 +1019,6 @@
                 let chickenOrderItems = [];
                 let marinateInstructions = [];
 
-                // 1. Process Marinated items deficits using raw stock
                 masterInventory.filter(i => i.isMarinated).forEach(item => {
                     const min = isWeekendMode ? item.weMin : item.wdMin;
                     const max = isWeekendMode ? item.weMax : item.wdMax;
@@ -1057,8 +1065,6 @@
                         }
                     }
                 });
-
-                // NOTE: Removed standalone raw stock min/max ordering bug! Raw stock is now only ordered if needed for marination shortfall.
 
                 let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
@@ -1107,7 +1113,7 @@
                                 <div class="supplier-title">🍗 Send Order to "Chicken - serial griller"</div>
                                 <div class="instruction-text">👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>Chicken - serial griller</strong> group mein bhejo.</div>
                                 <div class="order-list">${chickenVendorText}</div>
-                                <a href="${chickenVendorUrl}" class="btn-whatsapp">Send Chicken Order via WhatsApp</a>
+                                <a href="${chickenVendorUrl}" class="btn-whatsapp" onclick="markSectionComplete('chicken')">Send Chicken Order via WhatsApp</a>
                             </div>
                         `;
                     }
@@ -1121,7 +1127,7 @@
                                 <div class="supplier-title" style="color: #ffb74d;">🔪 SEND THIS TO TSG COORDINATION GROUP</div>
                                 <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">👉 <strong>Kaise bhejein:</strong> Yeh instruction message <strong>TSG-coordination</strong> group par bhejo taaki staff ko pata chale kya marinate karna hai.</div>
                                 <div class="order-list">${coordText}</div>
-                                <a href="${coordUrl}" class="btn-whatsapp" style="background-color: #ff9800;">Send Prep to TSG-coordination</a>
+                                <a href="${coordUrl}" class="btn-whatsapp" style="background-color: #ff9800;" onclick="markSectionComplete('chicken')">Send Prep to TSG-coordination</a>
                             </div>
                         `;
                     }
@@ -1149,7 +1155,7 @@
                             <div class="supplier-title">🥩 Send Order to "TSG beef order"</div>
                             <div class="instruction-text">👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG beef order</strong> group mein send karo.</div>
                             <div class="order-list">${buffOrderText}</div>
-                            <a href="${buffVendorUrl}" class="btn-whatsapp">Send Buff Order via WhatsApp</a>
+                            <a href="${buffVendorUrl}" class="btn-whatsapp" onclick="markSectionComplete('buff')">Send Buff Order via WhatsApp</a>
                             <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buff')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
@@ -1212,7 +1218,7 @@
                                 💾 <em>Note:</em> Orders have been saved to memory for tomorrow's pending delivery check.
                             </div>
                             <div class="order-list">${bunsOrderText}</div>
-                            <a href="${bunsWhatsappUrl}" class="btn-whatsapp">Send Buns Order via WhatsApp</a>
+                            <a href="${bunsWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('buns')">Send Buns Order via WhatsApp</a>
                             <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
@@ -1272,7 +1278,7 @@
                     box.innerHTML = `
                         <div class="supplier-box" style="text-align:center; padding:20px;">
                             <h3>👍 Stock is sufficient for Fries & Wedges for next 2 days. No order needed today.</h3>
-                            <button class="btn-primary-action" onclick="markSectionComplete('fries')">Done & Go to Home Page ✅</button>
+                            <button class="btn-primary-action" onclick="markSectionComplete('fries')">Go to Home Page</button>
                         </div>
                     `;
                 } else {
@@ -1288,7 +1294,7 @@
                                 💾 <em>Note:</em> Orders saved to memory for tomorrow's pending delivery check.
                             </div>
                             <div class="order-list">${friesOrderText}</div>
-                            <a href="${friesWhatsappUrl}" class="btn-whatsapp">Send Fries Order via WhatsApp</a>
+                            <a href="${friesWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('fries')">Send Fries Order via WhatsApp</a>
                             <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('fries')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
@@ -1341,7 +1347,7 @@
                                 👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG-coordination</strong> group mein send karein taaki staff prep aur pre-prep (mozzarella defrost) shuru kar sake.
                             </div>
                             <div class="order-list">${prepText}</div>
-                            <a href="${prepWhatsappUrl}" class="btn-whatsapp" style="background-color: #ff9800;">Send Prep to TSG-coordination</a>
+                            <a href="${prepWhatsappUrl}" class="btn-whatsapp" style="background-color: #ff9800;" onclick="markSectionComplete('prep')">Send Prep to TSG-coordination</a>
                             <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('prep')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
@@ -1382,7 +1388,7 @@
                             👉 <strong>Kaise use karein:</strong> Yeh report check kar lijiye aur zaroorat padne par management group par bhej sakte hain.
                         </div>
                         <div class="order-list">${saucesReportText}</div>
-                        <a href="${saucesWhatsappUrl}" class="btn-whatsapp">Share Sauces Report via WhatsApp</a>
+                        <a href="${saucesWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('sauces')">Share Sauces Report via WhatsApp</a>
                         <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('sauces')">Done & Go to Home Page ✅</button>
                     </div>
                 `;
@@ -1490,7 +1496,7 @@
                         👉 <strong>Kaise bhejein:</strong> Yeh master log message management group par send karo taaki check ho sake ki saari inventory bhari gayi hai.
                     </div>
                     <div class="order-list">${masterLogText}</div>
-                    <a href="${masterLogUrl}" class="btn-audit" style="background-color: #9c27b0;">Send Master Log to Management</a>
+                    <a href="${masterLogUrl}" class="btn-audit" style="background-color: #9c27b0;" onclick="markSectionComplete('master')">Send Master Log to Management</a>
                 </div>
             `;
 
