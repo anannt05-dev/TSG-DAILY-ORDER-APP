@@ -173,11 +173,11 @@
         function copyBlankTemplate() {
             let template = `*TSG Daily Inventory & Orders*\n\n`;
             
-            template += `--- BUNS & BAKERY ---\n`;
+            template += `--- BUNS ---\n`;
             template += `Regular Sesame Bun: _____\n`;
             template += `Multigrain Bun: _____\n\n`;
 
-            template += `--- SIDES ---\n`;
+            template += `--- FRIES & WEDGES ---\n`;
             template += `French Fries: _____\n`;
             template += `Potato Wedges: _____\n\n`;
 
@@ -198,6 +198,11 @@
             template += `--- BUFF ---\n`;
             template += `Frozen Buff Patty: _____\n`;
             template += `Fresh Buff Patty (refridgerated): _____\n\n`;
+
+            template += `--- SAUCES ---\n`;
+            template += `Egg Mayo: _____\n`;
+            template += `Garlic Toum: _____\n`;
+            template += `Ex-Sauce: _____\n\n`;
 
             template += `--- VEGETABLES ---\n`;
             template += `Onions: _____\n`;
@@ -225,7 +230,7 @@
             template += `Red Chilli Fresh: _____\n`;
 
             navigator.clipboard.writeText(template).then(() => {
-                alert("Blank WhatsApp Template copied to clipboard with clean sections!");
+                alert("Blank WhatsApp Template copied to clipboard with correct categories!");
             });
         }
 
@@ -247,14 +252,11 @@
                 }
             });
 
-            // Generate structured organized output
             let outputHtml = "<h3>📦 Processed Orders & Messages:</h3>";
             
-            // 1. Vegetable Vendor Section
+            // 1. Vegetables / Coordination Section
             outputHtml += `<div class="output-box">`;
-            outputHtml += `*SEND THIS TO TSG COORDINATION GROUP*\n`;
-            outputHtml += `Send message pe click karo, woh aapko WhatsApp pe le jayega, wahan pe SAI VEGETABLES search karo. Jab group aayega toh group pe send kar do.\n\n`;
-            outputHtml += `*Order for The Serial Griller Lokhandwala*\n`;
+            outputHtml += `*TSG-COORDINATION GROUP MESSAGE*\n\n`;
             const vegItems = ["Onions", "Tomato", "Iceberg Lettuce fresh", "Green Chilli", "Lemon", "Peeled Garlic", "Carrot", "Green Capsicum", "Ginger", "Coriander"];
             vegItems.forEach(item => {
                 if (parsedData[item]) {
@@ -265,7 +267,7 @@
 
             // 2. Central Kitchen Requirement Section
             outputHtml += `<div class="output-box">`;
-            outputHtml += `*CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA*\n`;
+            outputHtml += `*CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA*\n\n`;
             const ckItems = ["Onions (CK Req)", "Tomato (CK Req)", "Green Chilli (CK Req)", "Peeled Garlic (CK Req)", "Carrot (CK Req)", "Ginger (CK Req)", "Coriander (CK Req)", "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh", "Fat Kheema"];
             ckItems.forEach(item => {
                 if (parsedData[item]) {
