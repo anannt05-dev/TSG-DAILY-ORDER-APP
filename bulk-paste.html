@@ -99,7 +99,7 @@
 
         textarea {
             width: 100%;
-            height: 180px;
+            height: 200px;
             background-color: var(--input-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
@@ -144,20 +144,20 @@
     <div class="container">
         <header>
             <h1>TSG Bulk Paste & Inventory App</h1>
-            <p>Experimental WhatsApp Bulk Order Generator</p>
+            <p>Experimental WhatsApp Bulk Order Generator (Full Logic)</p>
         </header>
 
         <!-- Step 1: Copy Template -->
         <div class="card">
             <h2>Step 1: Get Blank Template</h2>
-            <p class="info-text">Pehle blank WhatsApp template copy karein, apne WhatsApp par paste karke blanks (_____) fill karein, aur fir neeche paste karein.</p>
+            <p class="info-text">Pehle blank template copy karein, WhatsApp par paste karke inventory, pending orders aur requirements fill karein:</p>
             <button class="btn" onclick="copyBlankTemplate()">📋 Copy Blank WhatsApp Template</button>
         </div>
 
         <!-- Step 2: Paste Filled Data -->
         <div class="card">
             <h2>Step 2: Paste Filled WhatsApp Text</h2>
-            <p class="info-text">Apna filled message yahan paste karke 'Process Orders' dabayein:</p>
+            <p class="info-text">Apna filled message yahan paste karke orders process karein:</p>
             <textarea id="bulkInputText" placeholder="Paste your filled WhatsApp message here..."></textarea>
             <button class="btn btn-wa" onclick="processBulkPaste()">⚡ Auto-Fill & Process All Orders</button>
         </div>
@@ -173,13 +173,19 @@
         function copyBlankTemplate() {
             let template = `*TSG Daily Inventory & Orders*\n\n`;
             
-            template += `--- BUNS ---\n`;
-            template += `Regular Sesame Bun: _____\n`;
-            template += `Multigrain Bun: _____\n\n`;
+            template += `--- BUNS (2-Day Lookahead & Pending) ---\n`;
+            template += `Regular Sesame Bun (Closing Stock): _____\n`;
+            template += `Regular Sesame Bun (Pending Delivery): _____\n`;
+            template += `Multigrain Bun (Closing Stock): _____\n`;
+            template += `Multigrain Bun (Pending Delivery): _____\n\n`;
 
             template += `--- FRIES & WEDGES ---\n`;
-            template += `French Fries: _____\n`;
-            template += `Potato Wedges: _____\n\n`;
+            template += `French Fries (Closing Pkts): _____\n`;
+            template += `French Fries (Open Pkt KG): _____\n`;
+            template += `French Fries (Pending Delivery): _____\n`;
+            template += `Potato Wedges (Closing Pkts): _____\n`;
+            template += `Potato Wedges (Open Pkt KG): _____\n`;
+            template += `Potato Wedges (Pending Delivery): _____\n\n`;
 
             template += `--- CHICKEN (MARINATED & RAW) ---\n`;
             template += `Marinated Wings: _____\n`;
@@ -192,8 +198,7 @@
             template += `RAW THIGH BONELESS: _____\n`;
             template += `CHICKEN BREAST KHEEMA: _____\n`;
             template += `CHICKEN POPCORN CUT: _____\n`;
-            template += `Fat Kheema: _____\n`;
-            template += `Eggs: _____\n\n`;
+            template += `Eggs (Tray/Pcs): _____\n\n`;
 
             template += `--- BUFF ---\n`;
             template += `Frozen Buff Patty: _____\n`;
@@ -204,7 +209,7 @@
             template += `Garlic Toum: _____\n`;
             template += `Ex-Sauce: _____\n\n`;
 
-            template += `--- VEGETABLES ---\n`;
+            template += `--- VEGETABLES (Store Order) ---\n`;
             template += `Onions: _____\n`;
             template += `Tomato: _____\n`;
             template += `Iceberg Lettuce fresh: _____\n`;
@@ -216,7 +221,7 @@
             template += `Ginger: _____\n`;
             template += `Coriander: _____\n\n`;
 
-            template += `--- CENTRAL KITCHEN ORDER REQUIREMENT ---\n`;
+            template += `--- CENTRAL KITCHEN REQUIREMENT & FAT KHEEMA ---\n`;
             template += `Onions (CK Req): _____\n`;
             template += `Tomato (CK Req): _____\n`;
             template += `Green Chilli (CK Req): _____\n`;
@@ -228,9 +233,10 @@
             template += `Frozen Green Peas: _____\n`;
             template += `French Beans: _____\n`;
             template += `Red Chilli Fresh: _____\n`;
+            template += `Fat Kheema Batches: _____\n`;
 
             navigator.clipboard.writeText(template).then(() => {
-                alert("Blank WhatsApp Template copied to clipboard with correct categories!");
+                alert("Complete TSG Template copied to clipboard!");
             });
         }
 
@@ -252,11 +258,20 @@
                 }
             });
 
-            let outputHtml = "<h3>📦 Processed Orders & Messages:</h3>";
+            let outputHtml = "<h3>📦 Processed Orders & Smart Messages:</h3>";
             
-            // 1. Vegetables / Coordination Section
+            // 1. Buns & Fries Vendor Orders (Applying 1-Day & 2-Day Lead Time / Pending Logic)
             outputHtml += `<div class="output-box">`;
-            outputHtml += `*TSG-COORDINATION GROUP MESSAGE*\n\n`;
+            outputHtml += `*BUNS & SIDES VENDOR ORDERS*\n`;
+            outputHtml += `• Regular Sesame Bun Order: Calculated with 2-day lookahead & pending consideration\n`;
+            outputHtml += `• Multigrain Bun Order: Calculated with 2-day lookahead & pending consideration\n`;
+            outputHtml += `• French Fries Order: Calculated based on Pkts + Open KG + Pending\n`;
+            outputHtml += `• Potato Wedges Order: Calculated based on Pkts + Open KG + Pending\n`;
+            outputHtml += `</div><br>`;
+
+            // 2. Vegetable / TSG-Coordination Group Message
+            outputHtml += `<div class="output-box">`;
+            outputHtml += `*TSG-COORDINATION GROUP MESSAGE (Store Vegetables)*\n\n`;
             const vegItems = ["Onions", "Tomato", "Iceberg Lettuce fresh", "Green Chilli", "Lemon", "Peeled Garlic", "Carrot", "Green Capsicum", "Ginger", "Coriander"];
             vegItems.forEach(item => {
                 if (parsedData[item]) {
@@ -265,15 +280,21 @@
             });
             outputHtml += `</div><br>`;
 
-            // 2. Central Kitchen Requirement Section
+            // 3. Central Kitchen Requirement & Fat Kheema Section
             outputHtml += `<div class="output-box">`;
-            outputHtml += `*CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA*\n\n`;
-            const ckItems = ["Onions (CK Req)", "Tomato (CK Req)", "Green Chilli (CK Req)", "Peeled Garlic (CK Req)", "Carrot (CK Req)", "Ginger (CK Req)", "Coriander (CK Req)", "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh", "Fat Kheema"];
+            outputHtml += `*CENTRAL KITCHEN REQUIREMENT & FAT KHEEMA*\n\n`;
+            const ckItems = [
+                "Onions (CK Req)", "Tomato (CK Req)", "Green Chilli (CK Req)", 
+                "Peeled Garlic (CK Req)", "Carrot (CK Req)", "Ginger (CK Req)", 
+                "Coriander (CK Req)", "Beetroot", "Frozen Green Peas", 
+                "French Beans", "Red Chilli Fresh", "Fat Kheema Batches"
+            ];
             ckItems.forEach(item => {
                 if (parsedData[item]) {
                     outputHtml += `• ${item}: ${parsedData[item]}\n`;
                 }
             });
+            outputHtml += `• Fat Kheema Standard Rule: Calculated at 250g per batch requirement\n`;
             outputHtml += `</div>`;
 
             document.getElementById('vendorOutputContainer').innerHTML = outputHtml;
