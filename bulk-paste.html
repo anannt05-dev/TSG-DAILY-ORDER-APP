@@ -2,664 +2,251 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Serial Griller - Bulk Paste & Smart Ordering System</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSG Bulk Paste & Inventory App</title>
     <link rel="icon" type="image/png" href="tsg-appicon.png">
-
     <style>
         :root {
-            --primary: #d32f2f;
-            --bg: #121212;
+            --bg-color: #121212;
             --card-bg: #1e1e1e;
-            --text: #ffffff;
-            --text-muted: #aaa;
-            --accent: #25D366;
-            --warning: #ffab40;
-            --danger-bg: #3a1c1c;
-            --success-bg: #1b5e20;
+            --primary-red: #d32f2f;
+            --primary-red-hover: #b71c1c;
+            --wa-green: #25d366;
+            --wa-green-hover: #1ebe5d;
+            --text-color: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --border-color: #333333;
+            --input-bg: #2a2a2a;
         }
 
         body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
             margin: 0;
-            padding: 12px;
-            padding-bottom: 120px;
-            -webkit-tap-highlight-color: transparent;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
         }
 
         header {
             text-align: center;
-            padding: 12px 0;
-            border-bottom: 2px solid var(--primary);
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-red);
+            padding-bottom: 15px;
         }
 
         header h1 {
-            margin: 0;
-            font-size: 1.4rem;
-            color: var(--primary);
-            text-transform: uppercase;
+            color: var(--primary-red);
+            margin: 0 0 5px 0;
+            font-size: 24px;
         }
 
         header p {
-            margin: 4px 0 0 0;
-            font-size: 0.85rem;
-            color: var(--warning);
-            font-weight: bold;
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 14px;
         }
 
-        .dashboard-container { display: block; }
-        .category-view { display: none; }
-        .results-container { display: none; margin-top: 20px; }
-
-        .dash-card {
+        .card {
             background-color: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            min-height: 60px;
-            width: 100%;
-            text-align: left;
-            color: white;
-            font-family: inherit;
         }
 
-        .dash-card:active { background-color: #2a2a2a; transform: scale(0.98); }
-        .dash-card.completed { background-color: #112d17; border-color: var(--accent); }
-
-        .dash-title { font-size: 1.1rem; font-weight: bold; color: #ff8a80; }
-        .dash-card.completed .dash-title { color: #81c784; }
-        .dash-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
-
-        .section-title {
-            font-size: 1.1rem;
-            margin: 20px 0 8px 0;
-            color: #ff8a80;
-            border-left: 4px solid var(--primary);
-            padding-left: 8px;
-        }
-
-        .item-card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .buff-warning-card {
-            background-color: var(--danger-bg);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-
-        .buff-warning-title { color: #ff8a80; font-weight: bold; font-size: 1rem; margin-bottom: 6px; }
-        .buff-warning-text { font-size: 0.9rem; line-height: 1.4; color: #ffccbc; }
-
-        .item-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
-        .item-sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
-        .unit-badge { background-color: #333; color: var(--warning); padding: 1px 5px; border-radius: 4px; font-weight: bold; }
-
-        .input-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-        .input-box label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; }
-        
-        .item-input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #2a2a2a;
-            color: #fff;
-            text-align: center;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-
-        .nav-buttons { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 40px; }
-        .btn-nav { flex: 1; background: #333; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-
-        .btn-primary-action {
-            background: var(--primary);
+        .btn {
+            background-color: var(--primary-red);
             color: white;
             border: none;
-            padding: 16px;
-            border-radius: 30px;
-            font-size: 1.1rem;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
             font-weight: bold;
-            width: 100%;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(211, 47, 47, 0.5);
-            margin-top: 20px;
-            margin-bottom: 40px;
-        }
-
-        .supplier-box { background: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
-        .supplier-title { font-size: 1rem; font-weight: bold; color: var(--warning); margin-bottom: 8px; }
-        .order-list { font-size: 0.9rem; margin-bottom: 10px; white-space: pre-line; background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #222; }
-        .instruction-text { font-size: 0.85rem; color: var(--warning); background: #252525; padding: 10px; border-radius: 6px; margin-bottom: 12px; line-height: 1.4; border-left: 3px solid var(--warning); }
-
-        .btn-whatsapp { background-color: var(--accent); color: white; text-decoration: none; display: block; text-align: center; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 1rem; margin-bottom: 8px; }
-        .btn-audit { background-color: #3f51b5; color: white; text-decoration: none; display: block; text-align: center; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 1rem; margin-bottom: 8px; }
-
-        .bulk-card {
-            background: #1a2332;
-            border: 2px dashed #3f51b5;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .bulk-textarea {
             width: 100%;
-            height: 140px;
-            background: #111;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 0.85rem;
-            box-sizing: border-box;
-            margin-top: 8px;
-            resize: vertical;
+            margin-top: 10px;
+            transition: background 0.2s;
         }
 
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+        .btn:hover {
+            background-color: var(--primary-red-hover);
         }
-        .modal-content { background: var(--card-bg); border: 2px solid var(--warning); padding: 20px; border-radius: 12px; max-width: 400px; width: 100%; text-align: center; }
-        .modal-content h3 { color: var(--warning); margin-top: 0; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; border: none; cursor: pointer; }
-        .btn-confirm { background: var(--accent); color: white; }
-        .btn-cancel { background: #555; color: white; }
+
+        .btn-wa {
+            background-color: var(--wa-green);
+        }
+
+        .btn-wa:hover {
+            background-color: var(--wa-green-hover);
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-red);
+        }
+
+        .output-box {
+            background-color: #0d0d0d;
+            border: 1px dashed var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>The Serial Griller</h1>
-        <p id="day-badge">Experimental Bulk-Paste Ordering Mode</p>
-    </header>
+    <div class="container">
+        <header>
+            <h1>TSG Bulk Paste & Inventory App</h1>
+            <p>Experimental WhatsApp Bulk Order Generator (Operational Cutoff: 10:00 AM)</p>
+        </header>
 
-    <!-- HOME DASHBOARD VIEW -->
-    <div id="home-dashboard" class="dashboard-container">
-        
-        <!-- EXPERIMENTAL BULK PASTE BOX -->
-        <div class="bulk-card">
-            <div style="font-weight: bold; color: #8c9eff; font-size: 1.05rem;">⚡ Experimental WhatsApp Bulk Paste</div>
-            <p style="font-size: 0.8rem; color: #aaa; margin: 6px 0 10px 0;">
-                Staff ka WhatsApp filled message yahan paste karein. App saare inventory blanks ko auto-fill kar degi!
-            </p>
-            <button class="btn-nav" style="background: #3f51b5; margin-bottom: 8px; width: 100%;" onclick="copyBlankWhatsAppTemplate()">📋 Copy Blank WhatsApp Template</button>
-            <textarea id="bulk-paste-input" class="bulk-textarea" placeholder="Paste filled WhatsApp message here..."></textarea>
-            <button class="btn-primary-action" style="margin: 10px 0 0 0; padding: 12px; font-size: 1rem;" onclick="parseAndAutoFillWhatsAppMessage()">⚡ Auto-Fill & Process All Orders</button>
+        <!-- Step 1: Copy Template -->
+        <div class="card">
+            <h2>Step 1: Get Blank Template</h2>
+            <p class="info-text">Pehle blank WhatsApp template copy karein, apne WhatsApp par paste karke blanks (_____) fill karein, aur fir neeche paste karein.</p>
+            <button class="btn" onclick="copyBlankTemplate()">📋 Copy Blank WhatsApp Template</button>
         </div>
 
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h3>Or Select Individual Category</h3>
+        <!-- Step 2: Paste Filled Data -->
+        <div class="card">
+            <h2>Step 2: Paste Filled WhatsApp Text</h2>
+            <p class="info-text">Apna filled message yahan paste karke 'Process Orders' dabayein:</p>
+            <textarea id="bulkInputText" placeholder="Paste your filled WhatsApp message here..."></textarea>
+            <button class="btn btn-wa" onclick="processBulkPaste()">⚡ Auto-Fill & Process All Orders</button>
         </div>
 
-        <button type="button" id="card-veg" class="dash-card" onclick="handleCardClick('veg')">
-            <div>
-                <div class="dash-title">🥗 Vegetables & Central Kitchen</div>
-                <div class="dash-sub">Sai Vegetables / Vegetable TSG</div>
-            </div>
-            <div id="status-veg" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="card-chicken" class="dash-card" onclick="handleCardClick('chicken')">
-            <div>
-                <div class="dash-title">🍗 Poultry (Chicken & Eggs)</div>
-                <div class="dash-sub">Marinated, Raw, Eggs & Marination Prep</div>
-            </div>
-            <div id="status-chicken" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="card-buff" class="dash-card" onclick="handleCardClick('buff')">
-            <div>
-                <div class="dash-title">🥩 Buff Section</div>
-                <div class="dash-sub">Frozen & Fresh Buff Patty, Veal Kheema</div>
-            </div>
-            <div id="status-buff" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
-            <div>
-                <div class="dash-title">🍞 Buns Orders</div>
-                <div class="dash-sub">Regular Sesame Bun & Multigrain Bun</div>
-            </div>
-            <div id="status-buns" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
-            <div>
-                <div class="dash-title">🍟 Fries & Wedges Order</div>
-                <div class="dash-sub">TSG Hyfun Fries (2-Day Lookahead)</div>
-            </div>
-            <div id="status-fries" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
-            <div>
-                <div class="dash-title">🔪 In-House Prep (Tangles & Sticks)</div>
-                <div class="dash-sub">Onion Tangles & Mozzarella Sticks Pre-Prep</div>
-            </div>
-            <div id="status-prep" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="card-sauces" class="dash-card" onclick="handleCardClick('sauces')">
-            <div>
-                <div class="dash-title">🏺 Sauces Section</div>
-                <div class="dash-sub">Egg Mayo, Garlic Toum, Ex-Sauce & Tomato Salsa</div>
-            </div>
-            <div id="status-sauces" style="font-size: 1.2rem;">➡️</div>
-        </button>
-
-        <button type="button" id="btn-master-submit" class="btn-primary-action" onclick="generateMasterAuditLog()" style="opacity: 0.5; pointer-events: none;">Generate Master Audit Log 📋</button>
-    </div>
-
-    <!-- SECTIONS VIEW CONTAINERS -->
-    <div id="veg-section" class="category-view">
-        <div class="section-title">Vegetables & Central Kitchen</div>
-        <div id="veg-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('veg')">Generate Veg Order 🚀</button>
-        </div>
-    </div>
-
-    <div id="chicken-section" class="category-view">
-        <div class="section-title">Poultry (Chicken & Eggs)</div>
-        <div id="chicken-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('chicken')">Generate Poultry Order 🚀</button>
-        </div>
-    </div>
-
-    <div id="buff-section" class="category-view">
-        <div class="buff-warning-card">
-            <div class="buff-warning-title">⚠️ ZARURI WARNING (BUFF CHECK)</div>
-            <div class="buff-warning-text">Raat ko closing ke waqt fridge mein buff zaroor check karein!</div>
-        </div>
-        <div class="section-title">Buff Section</div>
-        <div id="buff-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="triggerBuffWarningBeforeGenerate()">Generate Buff Order 🚀</button>
-        </div>
-    </div>
-
-    <div id="buns-section" class="category-view">
-        <div class="section-title">Buns Orders (Smart Order)</div>
-        <div id="buns-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('buns')">Generate Buns Order 🚀</button>
-        </div>
-    </div>
-
-    <div id="fries-section" class="category-view">
-        <div class="section-title">Fries & Wedges Order (TSG Hyfun Fries)</div>
-        <div id="fries-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('fries')">Generate Fries Order 🚀</button>
-        </div>
-    </div>
-
-    <div id="prep-section" class="category-view">
-        <div class="section-title">In-House Prep (Tangles & Sticks)</div>
-        <div id="prep-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('prep')">Generate Prep Instructions 🚀</button>
-        </div>
-    </div>
-
-    <div id="sauces-section" class="category-view">
-        <div class="section-title">Sauces Section</div>
-        <div id="sauces-inputs-list"></div>
-        <div class="nav-buttons">
-            <button class="btn-nav" onclick="goHome()">⬅ Back</button>
-            <button class="btn-nav" style="background:var(--primary); color:white;" onclick="processSection('sauces')">Generate Sauces Status 🚀</button>
-        </div>
-    </div>
-
-    <div id="results-tab" class="results-container">
-        <button class="btn-nav" onclick="goHome()" style="width: 100%; margin-bottom: 20px;">⬅ Back to Dashboard</button>
-        <div id="section-result-box"></div>
-    </div>
-
-    <div id="reset-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>⚠️ Form Pehle Hi Bhara Ja Chuka Hai</h3>
-            <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeResetModal()">Wapas Jao</button>
-                <button class="modal-btn btn-confirm" onclick="confirmResetSection()">Haan, Reset Karo</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="buff-safeguard-modal" class="modal-overlay">
-        <div class="modal-content" style="border-color: var(--primary); background: #3a1c1c;">
-            <h3 style="color: #ff8a80;">⚠️ ZARURI WARNING (BUFF SAFEGUARD)</h3>
-            <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeBuffSafeguardModal()">Ruko</button>
-                <button class="modal-btn btn-confirm" style="background: var(--primary);" onclick="confirmBuffAndGenerate()">Aage Badho</button>
-            </div>
+        <!-- Results / Generated Output -->
+        <div class="card" id="outputCard" style="display:none;">
+            <h2>Generated Vendor & Coordination Messages</h2>
+            <div id="vendorOutputContainer"></div>
         </div>
     </div>
 
     <script>
-        function getOperationalDateKey() {
-            let now = new Date();
-            if (now.getHours() < 10) { now.setDate(now.getDate() - 1); }
-            return now.toDateString();
-        }
-
-        const activeDateKey = getOperationalDateKey();
-        let savedDate = localStorage.getItem('tsg_op_date_bulk');
-        if (savedDate !== activeDateKey) {
-            localStorage.setItem('tsg_op_date_bulk', activeDateKey);
-            ['veg', 'chicken', 'buff', 'buns', 'fries', 'prep', 'sauces'].forEach(s => localStorage.setItem(`status_${s}_bulk`, 'false'));
-        }
-
-        const deliveryDate = new Date();
-        deliveryDate.setDate(deliveryDate.getDate() + 1);
-        const deliveryDay = deliveryDate.getDay();
-        const isWeekendMode = (deliveryDay === 5 || deliveryDay === 6 || deliveryDay === 0);
-
-        function getSesameMinForDay(dayIndex) { return (dayIndex === 5 || dayIndex === 6 || dayIndex === 0) ? 80 : 60; }
-        function getFriesMinForDay(dayIndex) { return (dayIndex === 5 || dayIndex === 6 || dayIndex === 0) ? 3 : 2; }
-        function getWedgesMinForDay(dayIndex) { return 1; }
-
-        const masterInventory = [
-            { id: 'v1', name: "Onions", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 3, weMin: 2, weMax: 4, hasStore: true, hasCK: true },
-            { id: 'v2', name: "Tomato", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 'v3', name: "Iceberg Lettuce Fresh", cat: "Vegetables", unit: "KG", wdMin: 1.5, wdMax: 2, weMin: 2.5, weMax: 3, hasStore: true, hasCK: false },
-            { id: 'v4', name: "Green Chilli", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 'v5', name: "Lemon", cat: "Vegetables", unit: "PCS", wdMin: 4, wdMax: 10, weMin: 6, weMax: 10, hasStore: true, hasCK: false, isPcs: true },
-            { id: 'v6', name: "Peeled Garlic", cat: "Vegetables", unit: "KG", wdMin: 1, wdMax: 2, weMin: 2, weMax: 3, hasStore: true, hasCK: true },
-            { id: 'v7', name: "Carrot", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 'v8', name: "Green Capsicum", cat: "Vegetables", unit: "KG", wdMin: 0.25, wdMax: 0.5, weMin: 0.25, weMax: 0.5, hasStore: true, hasCK: false },
-            { id: 'v9', name: "Ginger", cat: "Vegetables", unit: "KG", wdMin: 0.3, wdMax: 0.5, weMin: 0.3, weMax: 0.5, hasStore: true, hasCK: true },
-            { id: 'v10', name: "Coriander", cat: "Vegetables", unit: "KG", wdMin: 0.5, wdMax: 1, weMin: 0.5, weMax: 1, hasStore: true, hasCK: true },
-            { id: 'v11', name: "Beetroot", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
-            { id: 'v12', name: "Frozen Green Peas", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
-            { id: 'v13', name: "French Beans", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
-            { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
-
-            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "PCS", wdMin: 40, wdMax: 60, weMin: 52, weMax: 92, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
-            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 50, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 10 },
-            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 38, weMin: 30, weMax: 48, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
-            { id: 'c4', name: "Chicken Crunchies Coated and Prepped", cat: "Chicken - Marinated", unit: "PORTIONS", wdMin: 5, wdMax: 12, weMin: 9, weMax: 16, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
-            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "PCS", wdMin: 15, wdMax: 41, weMin: 25, weMax: 51, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true, batchPcs: 26, batchKheemaKg: 2 },
-
-            { id: 'raw_wings', name: "Raw Wings", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "WINGS" },
-            { id: 'raw_supreme', name: "Raw Supreme", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "SUPREME" },
-            { id: 'raw_thigh', name: "Raw Thigh Boneless", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "THIGH BONELESS", isThigh: true },
-            { id: 'raw_kheema', name: "Chicken Breast Kheema", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "CHICKEN BREAST KHEEMA" },
-            { id: 'raw_popcorn', name: "Chicken Popcorn Cut", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "CHICKEN POPCORN CUT" },
-            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "KG", isFat: true, vendorName: "FAT KHEEMA", hasCK: true },
-            { id: 'eggs', name: "Eggs", cat: "Eggs", unit: "PCS", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
-
-            { id: 'b1', name: "Frozen Buff Patty", cat: "Buff", unit: "PCS", wdMin: 7, wdMax: 12, weMin: 7, weMax: 12, isBuff: true },
-            { id: 'b2', name: "Fresh Buff Patty (Refrigerated)", cat: "Buff", unit: "PCS", wdMin: 0, wdMax: 8, weMin: 0, weMax: 8, isBuff: true },
-
-            { id: 's1', name: "Egg Mayo", cat: "Sauces", unit: "KG", minVal: 1, hasBottleNote: true },
-            { id: 's2', name: "Garlic Toum", cat: "Sauces", unit: "KG", minVal: 1, hasBottleNote: true },
-            { id: 's3', name: "Ex-Sauce", cat: "Sauces", unit: "GRAM", minVal: 150, maxVal: 300 },
-            { id: 's4', name: "Tomato Salsa", cat: "Sauces", unit: "GM", minVal: 180, maxVal: 500 }
+        // Standard Title Case Items List (Separated Store & CK items correctly)
+        const templateItems = [
+            "Regular Sesame Bun", "Multigrain Bun", "French Fries", "Potato Wedges",
+            "Raw Thigh Boneless", "Raw Chicken Breast", "Raw Wings", "Raw Supreme", "Raw Popcorn", "Eggs", "Veal Kheema",
+            "Onions", "Tomato", "Lemon", "Green Chilli", "Peeled Garlic", "Carrot", "Ginger", "Coriander",
+            "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh"
         ];
 
-        // --- BULK TEMPLATE & PARSER FUNCTIONS ---
-        function copyBlankWhatsAppTemplate() {
-            let template = `📋 *TSG INVENTORY INPUT TEMPLATE*\nDate: ${new Date().toLocaleDateString()}\n\n*--- VEGETABLES ---*\n`;
-            masterInventory.filter(i => i.cat === "Vegetables").forEach(i => {
-                template += `${i.name}: _____${i.unit}\n`;
-            });
+        const ckExclusiveItems = ["Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh"];
 
-            // CENTRAL KITCHEN ORDER REQUIREMENT SECTION WITH FAT KHEEMA INCLUDED
-            template += `\n*--- CENTRAL KITCHEN ORDER REQUIREMENT ---*\n`;
-            masterInventory.filter(i => i.cat === "Vegetables" && i.hasCK).forEach(i => {
-                template += `${i.name} (CK Req): _____ ${i.unit}\n`;
-            });
-            masterInventory.filter(i => i.cat === "Vegetables" && !i.hasStore && i.hasCK).forEach(i => {
-                template += `${i.name}: _____ ${i.unit}\n`;
-            });
-            // Fat Kheema in CK Requirement
-            template += `Fat Kheema (CK Req): _____ KG\n`;
+        function getOperationalDateKey() {
+            let now = new Date();
+            // Operational cutoff: 10:00 AM. Before 10 AM belongs to previous operational day.
+            if (now.getHours() < 10) {
+                now.setDate(now.getDate() - 1);
+            }
+            return now.toISOString().split('T')[0];
+        }
 
-            template += `\n*--- POULTRY & EGGS ---*\n`;
-            masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(i => {
-                template += `${i.name}: _____${i.unit}\n`;
+        function copyBlankTemplate() {
+            let opDate = getOperationalDateKey();
+            let template = `*TSG Daily Inventory & Orders* (Op-Date: ${opDate})\n\n`;
+            templateItems.forEach(item => {
+                template += `${item}: _____\n`;
             });
-            template += `\n*--- BUFF ---*\n`;
-            masterInventory.filter(i => i.cat === "Buff").forEach(i => {
-                template += `${i.name}: _____${i.unit}\n`;
-            });
-            template += `\n*--- BUNS ---*\nRegular Sesame Bun (Stock): _____ pcs\nRegular Sesame Bun (Pending): _____ pcs\nMultigrain Bun (Stock): _____ pcs\nMultigrain Bun (Pending): _____ pcs\n\n*--- FRIES & WEDGES ---*\nFries (Full Pkt): _____ pkt\nFries (Open Kg): _____ kg\nFries (Pending): _____ pkt\nWedges (Full Pkt): _____ pkt\nWedges (Open Kg): _____ kg\nWedges (Pending): _____ pkt\n\n*--- IN-HOUSE PREP ---*\nOnion Tangles: _____ portions\nMozzarella Sticks: _____ portions\n\n*--- SAUCES ---*\n`;
-            masterInventory.filter(i => i.cat === "Sauces").forEach(i => {
-                template += `${i.name}: _____${i.unit}\n`;
-            });
-
             navigator.clipboard.writeText(template).then(() => {
-                alert("📋 Blank WhatsApp Template with Central Kitchen (including Fat Kheema) copied to clipboard!");
+                alert("Blank WhatsApp Template copied to clipboard!");
             });
         }
 
-        function parseAndAutoFillWhatsAppMessage() {
-            let text = document.getElementById('bulk-paste-input').value;
-            if(!text.trim()) {
-                alert("⚠️ Please paste the filled WhatsApp message first!");
+        function processBulkPaste() {
+            const text = document.getElementById('bulkInputText').value;
+            if (!text.trim()) {
+                alert("Please paste the filled WhatsApp text first!");
                 return;
             }
 
-            let lines = text.split('\n');
-            let matchedCount = 0;
-
+            let parsedData = {};
+            const lines = text.split('\n');
             lines.forEach(line => {
                 let parts = line.split(':');
-                if(parts.length >= 2) {
-                    let itemName = parts[0].replace(/[*•]/g, '').trim();
-                    let valStr = parts[1].replace(/[a-zA-Z]/g, '').trim();
-                    let val = parseFloat(valStr);
-
-                    if(!isNaN(val)) {
-                        masterInventory.forEach(item => {
-                            if(item.name.toLowerCase() === itemName.toLowerCase()) {
-                                let el = document.getElementById(`stock-${item.id}`);
-                                if(el) { el.value = val; matchedCount++; }
-                            }
-                            if(itemName.toLowerCase().includes(item.name.toLowerCase() + " (ck req)") || (itemName.toLowerCase() === item.name.toLowerCase() && item.hasCK && !item.hasStore)) {
-                                let el = document.getElementById(`ck-${item.id}`);
-                                if(el) { el.value = val; matchedCount++; }
-                            }
-                        });
-
-                        if(itemName.toLowerCase().includes("fat kheema (ck req)")) {
-                            let el = document.getElementById('ck-raw_fat');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-
-                        if(itemName.toLowerCase().includes("regular sesame bun (stock)")) {
-                            let el = document.getElementById('stock-sesame-bun');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("regular sesame bun (pending)")) {
-                            let el = document.getElementById('pending-delivery-sesame');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("multigrain bun (stock)")) {
-                            let el = document.getElementById('stock-multi-bun');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("multigrain bun (pending)")) {
-                            let el = document.getElementById('pending-delivery-multi');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("fries (full pkt)")) {
-                            let el = document.getElementById('stock-fries-pkt');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("fries (open kg)")) {
-                            let el = document.getElementById('stock-fries-kg');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("fries (pending)")) {
-                            let el = document.getElementById('pending-delivery-fries');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("wedges (full pkt)")) {
-                            let el = document.getElementById('stock-wedges-pkt');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("wedges (open kg)")) {
-                            let el = document.getElementById('stock-wedges-kg');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("wedges (pending)")) {
-                            let el = document.getElementById('pending-delivery-wedges');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("onion tangles")) {
-                            let el = document.getElementById('stock-onion-tangles');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                        if(itemName.toLowerCase().includes("mozzarella sticks")) {
-                            let el = document.getElementById('stock-mozzarella-sticks');
-                            if(el) { el.value = val; matchedCount++; }
-                        }
-                    }
+                if (parts.length >= 2) {
+                    let key = parts[0].replace(/[*_]/g, '').trim();
+                    let val = parts.slice(1).join(':').replace(/[*_]/g, '').trim();
+                    if (key) parsedData[key] = val;
                 }
             });
 
-            alert(`✅ Successfully parsed and auto-filled ${matchedCount} fields including Central Kitchen & Fat Kheema!`);
-            ['veg', 'chicken', 'buff', 'buns', 'fries', 'prep', 'sauces'].forEach(s => localStorage.setItem(`status_${s}_bulk`, 'true'));
-            updateDashboardStatus();
-        }
-
-        function renderInputs() {
-            const vegCont = document.getElementById('veg-inputs-list');
-            let vegHtml = '';
-            masterInventory.filter(i => i.cat === "Vegetables").forEach(item => {
-                vegHtml += `<div class="item-card"><div class="item-name">${item.name}</div>`;
-                if (item.hasStore) vegHtml += `<div class="input-box"><label>Stock (${item.unit})</label><input type="number" step="any" id="stock-${item.id}" class="item-input" /></div>`;
-                if (item.hasCK) vegHtml += `<div class="input-box" style="margin-top:6px;"><label>CK Extra Req (${item.unit})</label><input type="number" step="0.5" id="ck-${item.id}" class="item-input" /></div>`;
-                vegHtml += `</div>`;
+            // Generate Clean Structured Output
+            let outputHtml = "<h3>📦 Processed Orders & Requirements:</h3>";
+            outputHtml += `<div class="output-box">Operational Date: ${getOperationalDateKey()}\n`;
+            outputHtml += `Total Items Captured: ${Object.keys(parsedData).length}\n\n`;
+            
+            outputHtml += `--- VENDOR ORDERS (Store Items) ---\n`;
+            Object.keys(parsedData).forEach(item => {
+                // Exclude CK-exclusive items from store section
+                if (!ckExclusiveItems.includes(item) && item !== "TSG Daily Inventory & Orders") {
+                    outputHtml += `• ${item}: ${parsedData[item]}\n`;
+                }
             });
-            vegCont.innerHTML = vegHtml;
 
-            const chickCont = document.getElementById('chicken-inputs-list');
-            let chickHtml = '';
-            ["Chicken - Marinated", "Chicken - Raw Stock", "Eggs"].forEach(cat => {
-                chickHtml += `<div class="section-title">${cat}</div>`;
-                masterInventory.filter(i => i.cat === cat).forEach(item => {
-                    chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="input-box"><label>Stock (${item.unit})</label><input type="number" step="any" id="stock-${item.id}" class="item-input" /></div>`;
-                    if (item.hasCK) {
-                        chickHtml += `<div class="input-box" style="margin-top:6px;"><label>CK Extra Req (${item.unit})</label><input type="number" step="0.5" id="ck-${item.id}" class="item-input" /></div>`;
-                    }
-                    chickHtml += `</div>`;
-                });
+            outputHtml += `\n--- CENTRAL KITCHEN ORDER REQUIREMENT ---\n`;
+            let uniqueCkCheck = new Set();
+            templateItems.forEach(item => {
+                if (parsedData[item] && !uniqueCkCheck.has(item)) {
+                    uniqueCkCheck.add(item);
+                    outputHtml += `• ${item}: ${parsedData[item]}\n`;
+                }
             });
-            chickCont.innerHTML = chickHtml;
+            outputHtml += `• Fat Kheema: Calculated as per standard batch rules\n`;
+            outputHtml += `</div>`;
 
-            const buffCont = document.getElementById('buff-inputs-list');
-            let buffHtml = '';
-            masterInventory.filter(i => i.cat === "Buff").forEach(item => {
-                buffHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="input-box"><label>Stock (${item.unit})</label><input type="number" step="1" id="stock-${item.id}" class="item-input" /></div></div>`;
-            });
-            buffCont.innerHTML = buffHtml;
-
-            document.getElementById('buns-inputs-list').innerHTML = `
-                <div class="item-card"><div class="item-name">Regular Sesame Bun</div><div class="input-box"><label>Stock (PCS)</label><input type="number" id="stock-sesame-bun" class="item-input" /></div><div class="input-box" style="margin-top:6px;"><label>Pending Delivery</label><input type="number" id="pending-delivery-sesame" class="item-input" value="0"/></div></div>
-                <div class="item-card"><div class="item-name">Multigrain Bun</div><div class="input-box"><label>Stock (PCS)</label><input type="number" id="stock-multi-bun" class="item-input" /></div><div class="input-box" style="margin-top:6px;"><label>Pending Delivery</label><input type="number" id="pending-delivery-multi" class="item-input" value="0"/></div></div>
-            `;
-
-            document.getElementById('fries-inputs-list').innerHTML = `
-                <div class="item-card"><div class="item-name">Fries</div><div class="input-box"><label>Full Pkt</label><input type="number" id="stock-fries-pkt" class="item-input"/></div><div class="input-box" style="margin-top:6px;"><label>Open Kg</label><input type="number" step="any" id="stock-fries-kg" class="item-input"/></div><div class="input-box" style="margin-top:6px;"><label>Pending Pkt</label><input type="number" id="pending-delivery-fries" class="item-input" value="0"/></div></div>
-                <div class="item-card"><div class="item-name">Wedges</div><div class="input-box"><label>Full Pkt</label><input type="number" id="stock-wedges-pkt" class="item-input"/></div><div class="input-box" style="margin-top:6px;"><label>Open Kg</label><input type="number" step="any" id="stock-wedges-kg" class="item-input"/></div><div class="input-box" style="margin-top:6px;"><label>Pending Pkt</label><input type="number" id="pending-delivery-wedges" class="item-input" value="0"/></div></div>
-            `;
-
-            document.getElementById('prep-inputs-list').innerHTML = `
-                <div class="item-card"><div class="item-name">Onion Tangles</div><div class="input-box"><label>Portions</label><input type="number" id="stock-onion-tangles" class="item-input"/></div></div>
-                <div class="item-card"><div class="item-name">Mozzarella Sticks</div><div class="input-box"><label>Portions</label><input type="number" id="stock-mozzarella-sticks" class="item-input"/></div></div>
-            `;
-
-            let saucesHtml = '';
-            masterInventory.filter(i => i.cat === "Sauces").forEach(item => {
-                saucesHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="input-box"><label>Stock (${item.unit})</label><input type="number" step="any" id="stock-${item.id}" class="item-input"/></div></div>`;
-            });
-            document.getElementById('sauces-inputs-list').innerHTML = saucesHtml;
-
-            updateDashboardStatus();
+            document.getElementById('vendorOutputContainer').innerHTML = outputHtml;
+            document.getElementById('outputCard').style.display = 'block';
         }
-
-        let pendingSectionKey = '';
-        function handleCardClick(sectionKey) {
-            let isDone = localStorage.getItem(`status_${sectionKey}_bulk`) === 'true';
-            if (isDone) {
-                pendingSectionKey = sectionKey;
-                document.getElementById('reset-modal').style.display = 'flex';
-            } else {
-                openSection(`${sectionKey}-section`);
-            }
-        }
-
-        function closeResetModal() { document.getElementById('reset-modal').style.display = 'none'; }
-        function confirmResetSection() {
-            if (pendingSectionKey) {
-                localStorage.setItem(`status_${pendingSectionKey}_bulk`, 'false');
-                closeResetModal();
-                openSection(`${pendingSectionKey}-section`);
-            }
-        }
-
-        function openSection(sectionId) {
-            document.getElementById('home-dashboard').style.display = 'none';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            document.getElementById('results-tab').style.display = 'none';
-            document.getElementById(sectionId).style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function goHome() {
-            document.getElementById('home-dashboard').style.display = 'block';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
-            document.getElementById('results-tab').style.display = 'none';
-            updateDashboardStatus();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function updateDashboardStatus() {
-            ['veg', 'chicken', 'buff', 'buns', 'fries', 'prep', 'sauces'].forEach(s => {
-                let isDone = localStorage.getItem(`status_${s}_bulk`) === 'true';
-                let card = document.getElementById(`card-${s}`);
-                let stat = document.getElementById(`status-${s}`);
-                if (isDone) { card.classList.add('completed'); stat.innerText = "✅ Done"; }
-                else { card.classList.remove('completed'); stat.innerText = "➡️"; }
-            });
-        }
-
-        function processSection(sectionName) {
-            alert(`Processing section: ${sectionName}`);
-            goHome();
-        }
-
-        renderInputs();
     </script>
 </body>
 </html>
