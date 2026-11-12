@@ -99,7 +99,7 @@
 
         textarea {
             width: 100%;
-            height: 150px;
+            height: 180px;
             background-color: var(--input-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
@@ -126,7 +126,7 @@
             font-size: 13px;
             white-space: pre-wrap;
             word-break: break-word;
-            max-height: 450px;
+            max-height: 400px;
             overflow-y: auto;
             line-height: 1.5;
         }
@@ -144,13 +144,13 @@
     <div class="container">
         <header>
             <h1>TSG Bulk Paste & Inventory App</h1>
-            <p>Experimental WhatsApp Bulk Order Generator (10:00 AM Operational Cutoff)</p>
+            <p>Experimental WhatsApp Bulk Order Generator</p>
         </header>
 
         <!-- Step 1: Copy Template -->
         <div class="card">
             <h2>Step 1: Get Blank Template</h2>
-            <p class="info-text">Pehle blank WhatsApp template copy karein, apne WhatsApp par paste karke closing inventory aur requirements (_____) fill karein, aur fir neeche paste karein.</p>
+            <p class="info-text">Pehle blank WhatsApp template copy karein, apne WhatsApp par paste karke blanks (_____) fill karein, aur fir neeche paste karein.</p>
             <button class="btn" onclick="copyBlankTemplate()">📋 Copy Blank WhatsApp Template</button>
         </div>
 
@@ -164,57 +164,68 @@
 
         <!-- Results / Generated Output -->
         <div class="card" id="outputCard" style="display:none;">
-            <h2>Generated Vendor & Central Kitchen Orders</h2>
+            <h2>Generated Vendor & Coordination Messages</h2>
             <div id="vendorOutputContainer"></div>
         </div>
     </div>
 
     <script>
-        // Categorized Master Inventory items list
-        const categories = {
-            "BAKERY & SIDES": [
-                "Regular Sesame Bun", "Multigrain Bun", "French Fries", "Potato Wedges"
-            ],
-            "CHICKEN & POULTRY": [
-                "Marinated Wings", "Marinated Thigh Boneless", "Marinated Supreme", 
-                "Chicken Crunchies Coated and prepped", "Chicken Patty", 
-                "RAW WINGS", "RAW SUPREME", "RAW THIGH BONELESS", 
-                "CHICKEN BREAST KHEEMA", "CHICKEN POPCORN CUT", "Eggs"
-            ],
-            "BUFF": [
-                "Frozen Buff Patty", "Fresh Buff Patty (refridgerated)"
-            ],
-            "VEGETABLES (STORE & CK)": [
-                "Onions", "Tomato", "Iceberg Lettuce fresh", "Green Chilli", 
-                "Lemon", "Peeled Garlic", "Carrot", "Green Capsicum", "Ginger", "Coriander"
-            ],
-            "CENTRAL KITCHEN EXCLUSIVE": [
-                "Fat Kheema", "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh"
-            ]
-        };
-
-        function getOperationalDateKey() {
-            let now = new Date();
-            if (now.getHours() < 10) {
-                now.setDate(now.getDate() - 1);
-            }
-            return now.toISOString().split('T')[0];
-        }
-
         function copyBlankTemplate() {
-            let opDate = getOperationalDateKey();
-            let template = `*TSG Daily Inventory & Orders* (Op-Date: ${opDate})\n\n`;
+            let template = `*TSG Daily Inventory & Orders*\n\n`;
             
-            Object.keys(categories).forEach(cat => {
-                template += `*[ ${cat} ]*\n`;
-                categories[cat].forEach(item => {
-                    template += `${item}: _____\n`;
-                });
-                template += `\n`;
-            });
+            template += `--- BUNS & BAKERY ---\n`;
+            template += `Regular Sesame Bun: _____\n`;
+            template += `Multigrain Bun: _____\n\n`;
+
+            template += `--- SIDES ---\n`;
+            template += `French Fries: _____\n`;
+            template += `Potato Wedges: _____\n\n`;
+
+            template += `--- CHICKEN (MARINATED & RAW) ---\n`;
+            template += `Marinated Wings: _____\n`;
+            template += `Marinated Thigh Boneless: _____\n`;
+            template += `Marinated Supreme: _____\n`;
+            template += `Chicken Crunchies Coated and prepped: _____\n`;
+            template += `Chicken Patty: _____\n`;
+            template += `RAW WINGS: _____\n`;
+            template += `RAW SUPREME: _____\n`;
+            template += `RAW THIGH BONELESS: _____\n`;
+            template += `CHICKEN BREAST KHEEMA: _____\n`;
+            template += `CHICKEN POPCORN CUT: _____\n`;
+            template += `Fat Kheema: _____\n`;
+            template += `Eggs: _____\n\n`;
+
+            template += `--- BUFF ---\n`;
+            template += `Frozen Buff Patty: _____\n`;
+            template += `Fresh Buff Patty (refridgerated): _____\n\n`;
+
+            template += `--- VEGETABLES ---\n`;
+            template += `Onions: _____\n`;
+            template += `Tomato: _____\n`;
+            template += `Iceberg Lettuce fresh: _____\n`;
+            template += `Green Chilli: _____\n`;
+            template += `Lemon: _____\n`;
+            template += `Peeled Garlic: _____\n`;
+            template += `Carrot: _____\n`;
+            template += `Green Capsicum: _____\n`;
+            template += `Ginger: _____\n`;
+            template += `Coriander: _____\n\n`;
+
+            template += `--- CENTRAL KITCHEN ORDER REQUIREMENT ---\n`;
+            template += `Onions (CK Req): _____\n`;
+            template += `Tomato (CK Req): _____\n`;
+            template += `Green Chilli (CK Req): _____\n`;
+            template += `Peeled Garlic (CK Req): _____\n`;
+            template += `Carrot (CK Req): _____\n`;
+            template += `Ginger (CK Req): _____\n`;
+            template += `Coriander (CK Req): _____\n`;
+            template += `Beetroot: _____\n`;
+            template += `Frozen Green Peas: _____\n`;
+            template += `French Beans: _____\n`;
+            template += `Red Chilli Fresh: _____\n`;
 
             navigator.clipboard.writeText(template).then(() => {
-                alert("Blank WhatsApp Template with Headers copied to clipboard!");
+                alert("Blank WhatsApp Template copied to clipboard with clean sections!");
             });
         }
 
@@ -230,45 +241,37 @@
             lines.forEach(line => {
                 let parts = line.split(':');
                 if (parts.length >= 2) {
-                    let key = parts[0].replace(/[*_\[\]]/g, '').trim();
+                    let key = parts[0].replace(/[*_]/g, '').trim();
                     let val = parts.slice(1).join(':').replace(/[*_]/g, '').trim();
-                    if (key && !categories[key.toUpperCase()]) {
-                        parsedData[key] = val;
-                    }
+                    if (key) parsedData[key] = val;
                 }
             });
 
-            // Generate Structured Clean Output
-            let outputHtml = "<h3>📦 Processed Orders & Requirements:</h3>";
-            outputHtml += `<div class="output-box">Operational Date: ${getOperationalDateKey()}\n`;
-            outputHtml += `Total Items Captured: ${Object.keys(parsedData).length}\n\n`;
+            // Generate structured organized output
+            let outputHtml = "<h3>📦 Processed Orders & Messages:</h3>";
             
-            outputHtml += `--- VENDOR ORDERS & STORE INVENTORY ---\n`;
-            Object.keys(categories).forEach(cat => {
-                if (cat !== "CENTRAL KITCHEN EXCLUSIVE") {
-                    outputHtml += `\n[ ${cat} ]\n`;
-                    categories[cat].forEach(item => {
-                        if (parsedData[item] !== undefined) {
-                            outputHtml += `• ${item}: ${parsedData[item]}\n`;
-                        }
-                    });
-                }
-            });
-
-            outputHtml += `\n--- CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA ---\n`;
-            outputHtml += `\n[ CENTRAL KITCHEN PRODUCTION ]\n`;
-            categories["CENTRAL KITCHEN EXCLUSIVE"].forEach(item => {
-                if (parsedData[item] !== undefined) {
+            // 1. Vegetable Vendor Section
+            outputHtml += `<div class="output-box">`;
+            outputHtml += `*SEND THIS TO TSG COORDINATION GROUP*\n`;
+            outputHtml += `Send message pe click karo, woh aapko WhatsApp pe le jayega, wahan pe SAI VEGETABLES search karo. Jab group aayega toh group pe send kar do.\n\n`;
+            outputHtml += `*Order for The Serial Griller Lokhandwala*\n`;
+            const vegItems = ["Onions", "Tomato", "Iceberg Lettuce fresh", "Green Chilli", "Lemon", "Peeled Garlic", "Carrot", "Green Capsicum", "Ginger", "Coriander"];
+            vegItems.forEach(item => {
+                if (parsedData[item]) {
                     outputHtml += `• ${item}: ${parsedData[item]}\n`;
                 }
             });
-            // Also include key vegetables needed for CK
-            ["Onions", "Tomato", "Green Chilli", "Peeled Garlic", "Carrot", "Ginger", "Coriander"].forEach(item => {
-                if (parsedData[item] !== undefined) {
-                    outputHtml += `• ${item} (CK Req): ${parsedData[item]}\n`;
+            outputHtml += `</div><br>`;
+
+            // 2. Central Kitchen Requirement Section
+            outputHtml += `<div class="output-box">`;
+            outputHtml += `*CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA*\n`;
+            const ckItems = ["Onions (CK Req)", "Tomato (CK Req)", "Green Chilli (CK Req)", "Peeled Garlic (CK Req)", "Carrot (CK Req)", "Ginger (CK Req)", "Coriander (CK Req)", "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh", "Fat Kheema"];
+            ckItems.forEach(item => {
+                if (parsedData[item]) {
+                    outputHtml += `• ${item}: ${parsedData[item]}\n`;
                 }
             });
-
             outputHtml += `</div>`;
 
             document.getElementById('vendorOutputContainer').innerHTML = outputHtml;
