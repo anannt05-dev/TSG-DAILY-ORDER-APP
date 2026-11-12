@@ -521,7 +521,7 @@
     </div>
 
     <script>
-        // --- 10 AM RESET & OPERATIONAL DATE LOGIC ---
+        // --- 10 AM RESET & 1-DAY ADVANCE OPERATIONAL DATE LOGIC ---
         function getOperationalDateKey() {
             let now = new Date();
             if (now.getHours() < 10) {
@@ -544,11 +544,15 @@
             localStorage.setItem('status_sauces', 'false');
         }
 
-        const todayDay = new Date().getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
-        const isWeekendMode = (todayDay === 5 || todayDay === 6 || todayDay === 0);
+        // Advance 1-day check for delivery (Orders placed tonight arrive tomorrow)
+        const deliveryDate = new Date();
+        deliveryDate.setDate(deliveryDate.getDate() + 1);
+        const deliveryDay = deliveryDate.getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
+        const isWeekendMode = (deliveryDay === 5 || deliveryDay === 6 || deliveryDay === 0);
+
         document.getElementById('day-badge').innerText = isWeekendMode ? 
-            "🔥 Weekend Mode Active (Higher Min/Max)" : 
-            "🟢 Weekday Mode Active (Standard Min/Max)";
+            "🔥 Weekend Delivery Mode Active (Fri-Sun Prep / Higher Targets)" : 
+            "🟢 Weekday Delivery Mode Active (Standard Targets)";
 
         function getSesameMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
@@ -582,11 +586,31 @@
             { id: 'v14', name: "Red Chilli Fresh", cat: "Vegetables", unit: "KG", hasStore: false, hasCK: true },
 
             // --- CHICKEN & EGGS ---
-            { id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "PCS", wdMin: 40, wdMax: 66, weMin: 52, weMax: 78, isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20 },
-            { id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 20 },
-            { id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "PCS", wdMin: 20, wdMax: 30, weMin: 30, weMax: 40, isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18 },
-            { id: 'c4', name: "Chicken Crunchies Coated and Prepped", cat: "Chicken - Marinated", unit: "PORTIONS", wdMin: 5, wdMax: 10, weMin: 9, weMax: 14, isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7 },
-            { id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "PCS", wdMin: 15, wdMax: 25, weMin: 25, weMax: 35, isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true },
+            { 
+                id: 'c1', name: "Marinated Wings", cat: "Chicken - Marinated", unit: "PCS", 
+                wdMin: 40, wdMax: 60, weMin: 52, weMax: 92, 
+                isMarinated: true, rawKey: 'raw_wings', yieldPerKg: 20, backupKgWd: 1, backupKgWe: 2 
+            },
+            { 
+                id: 'c2', name: "Marinated Thigh Boneless", cat: "Chicken - Marinated", unit: "PCS", 
+                wdMin: 20, wdMax: 30, weMin: 30, weMax: 50, 
+                isMarinated: true, rawKey: 'raw_thigh', yieldPerKg: 10, backupKgWd: 1, backupKgWe: 2 
+            },
+            { 
+                id: 'c3', name: "Marinated Supreme", cat: "Chicken - Marinated", unit: "PCS", 
+                wdMin: 20, wdMax: 38, weMin: 30, weMax: 48, 
+                isMarinated: true, rawKey: 'raw_supreme', yieldPerKg: 18, backupKgWd: 1, backupKgWe: 1 
+            },
+            { 
+                id: 'c4', name: "Chicken Crunchies Coated and Prepped", cat: "Chicken - Marinated", unit: "PORTIONS", 
+                wdMin: 5, wdMax: 12, weMin: 9, weMax: 16, 
+                isMarinated: true, rawKey: 'raw_popcorn', yieldPerKg: 7, backupKgWd: 1, backupKgWe: 1 
+            },
+            { 
+                id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "PCS", 
+                wdMin: 15, wdMax: 41, weMin: 25, weMax: 51, 
+                isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true, batchPcs: 26, batchKheemaKg: 2 
+            },
 
             { id: 'raw_wings', name: "Raw Wings", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "WINGS" },
             { id: 'raw_supreme', name: "Raw Supreme", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "SUPREME" },
@@ -652,7 +676,7 @@
                 chickHtml += `<div class="section-title">${cat}</div>`;
                 masterInventory.filter(i => i.cat === cat).forEach(item => {
                     let subText = item.isEggs ? `Target Range: Min <span class="unit-badge">${isWeekendMode ? item.weMin : item.wdMin} pcs</span> / Max <span class="unit-badge">${isWeekendMode ? item.weMax : item.wdMax} pcs</span>` :
-                                  item.cat === "Chicken - Marinated" ? `Target Range: Min <span class="unit-badge">${isWeekendMode ? item.weMin : item.wdMin} ${item.unit}</span> / Max <span class="unit-badge">${isWeekendMode ? item.weMax : item.wdMax} ${item.unit}</span>` :
+                                  item.cat === "Chicken - Marinated" ? `Target Range / Total Requirement: Min <span class="unit-badge">${isWeekendMode ? item.weMin : item.wdMin} ${item.unit}</span> / Max Target <span class="unit-badge">${isWeekendMode ? item.weMax : item.wdMax} ${item.unit}</span>` :
                                   `Available Closing Stock in <strong style="color:var(--warning)">KG</strong>`;
 
                     chickHtml += `<div class="item-card"><div class="item-name">${item.name}</div><div class="item-sub">${subText}</div>`;
@@ -692,13 +716,13 @@
             const bunsCont = document.getElementById('buns-inputs-list');
             let lastSesameBunOrder = localStorage.getItem('tsg_last_sesame_bun_order') || 0;
             let lastMultiBunOrder = localStorage.getItem('tsg_last_multi_bun_order') || 0;
-            let minToday = getSesameMinForDay(todayDay);
-            let minTomorrow = getSesameMinForDay((todayDay + 1) % 7);
+            let minToday = getSesameMinForDay(deliveryDay);
+            let minTomorrow = getSesameMinForDay((deliveryDay + 1) % 7);
 
             bunsCont.innerHTML = `
                 <div class="item-card">
                     <div class="item-name">Regular Sesame Bun</div>
-                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Today Min: ${minToday}, Tomorrow Min: ${minTomorrow})</div>
+                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Delivery Min: ${minToday}, Next Min: ${minTomorrow})</div>
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Closing Stock of Regular Sesame Bun in <strong style="color:var(--warning)">PCS</strong></label>
@@ -731,15 +755,15 @@
             const friesCont = document.getElementById('fries-inputs-list');
             let lastFriesOrder = localStorage.getItem('tsg_last_fries_order') || 0;
             let lastWedgesOrder = localStorage.getItem('tsg_last_wedges_order') || 0;
-            let friesMinToday = getFriesMinForDay(todayDay);
-            let friesMinTomorrow = getFriesMinForDay((todayDay + 1) % 7);
-            let wedgesMinToday = getWedgesMinForDay(todayDay);
-            let wedgesMinTomorrow = getWedgesMinForDay((todayDay + 1) % 7);
+            let friesMinToday = getFriesMinForDay(deliveryDay);
+            let friesMinTomorrow = getFriesMinForDay((deliveryDay + 1) % 7);
+            let wedgesMinToday = getWedgesMinForDay(deliveryDay);
+            let wedgesMinTomorrow = getWedgesMinForDay((deliveryDay + 1) % 7);
 
             friesCont.innerHTML = `
                 <div class="item-card">
                     <div class="item-name">Fries (TSG Hyfun Fries)</div>
-                    <div class="item-sub">Rule: MOQ 1 Box = 5 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Today Min: ${friesMinToday} pkt, Tomorrow Min: ${friesMinTomorrow} pkt)</div>
+                    <div class="item-sub">Rule: MOQ 1 Box = 5 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Delivery Min: ${friesMinToday} pkt, Next Min: ${friesMinTomorrow} pkt)</div>
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
@@ -758,7 +782,7 @@
 
                 <div class="item-card" style="margin-top: 15px;">
                     <div class="item-name">Wedges (TSG Hyfun Fries)</div>
-                    <div class="item-sub">Rule: MOQ 2 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Today Min: ${wedgesMinToday} pkt, Tomorrow Min: ${wedgesMinTomorrow} pkt)</div>
+                    <div class="item-sub">Rule: MOQ 2 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Delivery Min: ${wedgesMinToday} pkt, Next Min: ${wedgesMinTomorrow} pkt)</div>
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
@@ -1020,52 +1044,80 @@
                 let marinateInstructions = [];
 
                 masterInventory.filter(i => i.isMarinated).forEach(item => {
-                    const min = isWeekendMode ? item.weMin : item.wdMin;
-                    const max = isWeekendMode ? item.weMax : item.wdMax;
-                    let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                    let deficit = (stock <= min) ? (max - stock) : 0;
+                    const minMarinated = isWeekendMode ? item.weMin : item.wdMin;
+                    const totalRequirement = isWeekendMode ? item.weMax : item.wdMax;
+                    
+                    let marinatedStock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    
+                    if (item.isBatchPatty) {
+                        // Batch Patty Logic (26 pcs = 2 kg kheema + 250g fat)
+                        let batchSize = item.batchPcs;
+                        let kheemaPerBatch = item.batchKheemaKg;
+                        let totalAvailablePatty = marinatedStock; // assuming raw kheema is separate in rawStock
 
-                    if (deficit > 0) {
-                        if (item.isBatchPatty) {
-                            let batchesNeeded = Math.ceil(deficit / 26);
-                            let kheemaNeeded = batchesNeeded * 2;
-                            let availableKheema = rawStock['raw_kheema'] || 0;
+                        // Check total requirement vs available marinated + raw backup equivalent
+                        let rawKheemaAvail = rawStock['raw_kheema'] || 0;
+                        let equivalentPattyFromRaw = (rawKheemaAvail / kheemaPerBatch) * batchSize;
+                        let totalCombinedStock = marinatedStock + equivalentPattyFromRaw;
 
-                            if (availableKheema >= kheemaNeeded) {
-                                rawStock['raw_kheema'] -= kheemaNeeded;
-                                marinateInstructions.push(`• Raw Breast Kheema *${kheemaNeeded} kg* aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
-                            } else {
-                                let shortfall = kheemaNeeded - availableKheema;
-                                rawStock['raw_kheema'] = 0;
-                                if (shortfall > 0) {
-                                    chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: Math.ceil(shortfall), unit: "kg" });
+                        if (marinatedStock <= minMarinated || totalCombinedStock < totalRequirement) {
+                            let deficitPcs = totalRequirement - totalCombinedStock;
+                            if (deficitPcs > 0) {
+                                let batchesNeeded = Math.ceil(deficitPcs / batchSize);
+                                let kheemaNeeded = batchesNeeded * kheemaPerBatch;
+
+                                if (rawKheemaAvail >= kheemaNeeded) {
+                                    rawStock['raw_kheema'] -= kheemaNeeded;
+                                    marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw breast kheema *${kheemaNeeded} kg* aur fat rakha hai, marinate karke *${batchesNeeded * batchSize} pcs* patty bana dena.`);
+                                } else {
+                                    let shortfallKheema = kheemaNeeded - rawKheemaAvail;
+                                    rawStock['raw_kheema'] = 0;
+                                    if (shortfallKheema > 0) {
+                                        chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: shortfallKheema, unit: "kg" });
+                                    }
+                                    marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs) aur raw stock order kar diya gaya hai. Kal milte hi marinate karke patty bana dena.`);
                                 }
-                                marinateInstructions.push(`• Raw Breast Kheema aur Fat rakha hai fridge me, marinate karke *${batchesNeeded * 26} pcs* Chicken Patty bana dena.`);
+                            } else {
+                                // Marinated is below min, but raw stock is enough locally without ordering
+                                marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw stock rakha hai, marinate kar dena.`);
                             }
-                        } else {
-                            let rawKey = item.rawKey;
-                            let yieldRate = item.yieldPerKg;
-                            let rawAvailable = rawStock[rawKey] || 0;
-                            let rawKgNeeded = deficit / yieldRate;
-                            let rawItemObj = masterInventory.find(i => i.id === rawKey);
+                        }
+                    } else {
+                        // Standard Marinated Items (Wings, Thigh, Supreme, Crunchies)
+                        let rawKey = item.rawKey;
+                        let yieldRate = item.yieldPerKg; // Wings: 20, Thigh: 10, Supreme: 18, Popcorn: 7
+                        let rawAvailable = rawStock[rawKey] || 0;
+                        
+                        let unitEquivalentFromRaw = rawAvailable * yieldRate;
+                        let totalCombinedStock = marinatedStock + unitEquivalentFromRaw;
 
-                            if (rawAvailable >= rawKgNeeded) {
-                                rawStock[rawKey] -= rawKgNeeded;
-                                let usedKgRounded = Math.ceil(rawKgNeeded);
-                                marinateInstructions.push(`• Raw ${rawItemObj.name} *${usedKgRounded} kg* rakha hai fridge me, marinate kar dena usko.`);
-                            } else {
-                                let shortfallKg = rawKgNeeded - rawAvailable;
-                                rawStock[rawKey] = 0;
-                                let orderedKg = Math.ceil(shortfallKg);
-                                if (orderedKg > 0) {
-                                    chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
+                        if (marinatedStock <= minMarinated || totalCombinedStock < totalRequirement) {
+                            let deficitUnits = totalRequirement - totalCombinedStock;
+                            if (deficitUnits > 0) {
+                                let rawKgNeeded = deficitUnits / yieldRate;
+                                let rawItemObj = masterInventory.find(i => i.id === rawKey);
+
+                                if (rawAvailable >= rawKgNeeded) {
+                                    rawStock[rawKey] -= rawKgNeeded;
+                                    let usedKgRounded = Math.ceil(rawKgNeeded);
+                                    marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port). Fridge mein Raw ${rawItemObj.name} *${usedKgRounded} kg* rakha hai, marinate kar dena.`);
+                                } else {
+                                    let shortfallKg = rawKgNeeded - rawAvailable;
+                                    rawStock[rawKey] = 0;
+                                    let orderedKg = Math.ceil(shortfallKg);
+                                    if (orderedKg > 0) {
+                                        chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
+                                    }
+                                    marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port) aur raw stock order kar diya gaya hai. Kal aate hi marinate kar dena.`);
                                 }
-                                marinateInstructions.push(`• Raw ${rawItemObj.name} rakha hai fridge me, marinate kar dena usko.`);
+                            } else {
+                                marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port). Fridge mein raw stock rakha hai, marinate kar dena.`);
                             }
                         }
                     }
                 });
 
+                // Fat Kheema Automatic Rule: 250g per 2 kg breast kheema ordered
                 let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 if (totalKheemaOrdered > 0 && fatStock === 0) {
@@ -1119,7 +1171,7 @@
                     }
                     if (hasPrep) {
                         let coordText = `📋 *CHICKEN MARINATION & PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n`;
-                        if (marinateInstructions.length > 0) coordText += marinateInstructions.join('\n');
+                        if (marinateInstructions.length > 0) coordText += marinateInstructions.join('\n\n');
                         if (eggsOrderNeeded) coordText += `\n\n⚠️ *Eggs low hain!* Kripya Hyperpure se *${eggsTrayOrder} pcs* (${eggsTrayOrder/30} trays) order kar dein.`;
                         let coordUrl = `https://wa.me/?text=${encodeURIComponent(coordText)}`;
                         htmlContent += `
@@ -1172,8 +1224,8 @@
                 }
 
                 let totalSesameAvailable = sesameStock + sesamePending;
-                let minToday = getSesameMinForDay(todayDay);
-                let minTomorrow = getSesameMinForDay((todayDay + 1) % 7);
+                let minToday = getSesameMinForDay(deliveryDay);
+                let minTomorrow = getSesameMinForDay((deliveryDay + 1) % 7);
                 let twoDayMin = minToday + minTomorrow;
 
                 let sesameShortfall = twoDayMin - totalSesameAvailable;
@@ -1239,8 +1291,8 @@
                 let totalFriesPkts = totalFriesKg / 2.5;
                 let totalFriesAvailable = totalFriesPkts + friesPending;
 
-                let friesMinToday = getFriesMinForDay(todayDay);
-                let friesMinTomorrow = getFriesMinForDay((todayDay + 1) % 7);
+                let friesMinToday = getFriesMinForDay(deliveryDay);
+                let friesMinTomorrow = getFriesMinForDay((deliveryDay + 1) % 7);
                 let friesTwoDayMin = friesMinToday + friesMinTomorrow;
 
                 let friesShortfall = friesTwoDayMin - totalFriesAvailable;
@@ -1262,8 +1314,8 @@
                 let totalWedgesPkts = totalWedgesKg / 2.5;
                 let totalWedgesAvailable = totalWedgesPkts + wedgesPending;
 
-                let wedgesMinToday = getWedgesMinForDay(todayDay);
-                let wedgesMinTomorrow = getWedgesMinForDay((todayDay + 1) % 7);
+                let wedgesMinToday = getWedgesMinForDay(deliveryDay);
+                let wedgesMinTomorrow = getWedgesMinForDay((deliveryDay + 1) % 7);
                 let wedgesTwoDayMin = wedgesMinToday + wedgesMinTomorrow;
 
                 let wedgesShortfall = wedgesTwoDayMin - totalWedgesAvailable;
@@ -1444,7 +1496,7 @@
             let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value) || 0;
             let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
             let sesameTotal = sesameStock + sesamePending;
-            let twoDayMin = getSesameMinForDay(todayDay) + getSesameMinForDay((todayDay + 1) % 7);
+            let twoDayMin = getSesameMinForDay(deliveryDay) + getSesameMinForDay((deliveryDay + 1) % 7);
             let sesameShortfall = twoDayMin - sesameTotal;
             let sesameAuditOrder = sesameShortfall > 0 ? Math.max(sesameShortfall, 40) : 0;
             masterAuditLines.push(`• *Regular Sesame Bun* | Stock: ${sesameStock} pcs | Pending: ${sesamePending} pcs | Order: *${sesameAuditOrder > 0 ? sesameAuditOrder + ' pcs' : 'Sufficient'}*`);
@@ -1460,7 +1512,7 @@
             let friesKg = parseFloat(document.getElementById('stock-fries-kg').value) || 0;
             let friesPending = parseFloat(document.getElementById('pending-delivery-fries').value) || 0;
             let friesTotal = (friesPkt * 2.5 + friesKg) / 2.5 + friesPending;
-            let friesTwoDayMin = getFriesMinForDay(todayDay) + getFriesMinForDay((todayDay + 1) % 7);
+            let friesTwoDayMin = getFriesMinForDay(deliveryDay) + getFriesMinForDay((deliveryDay + 1) % 7);
             let friesShort = friesTwoDayMin - friesTotal;
             let friesAuditOrder = friesShort > 0 ? Math.max(Math.ceil(friesShort / 5) * 5, 5) : 0;
             masterAuditLines.push(`• *Fries* | Stock: ${friesPkt} pkt ${friesKg}kg | Pending: ${friesPending} pkt | Order: *${friesAuditOrder > 0 ? friesAuditOrder + ' pkts' : 'Sufficient'}*`);
@@ -1469,7 +1521,7 @@
             let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg').value) || 0;
             let wedgesPending = parseFloat(document.getElementById('pending-delivery-wedges').value) || 0;
             let wedgesTotal = (wedgesPkt * 2.5 + wedgesKg) / 2.5 + wedgesPending;
-            let wedgesTwoDayMin = getWedgesMinForDay(todayDay) + getWedgesMinForDay((todayDay + 1) % 7);
+            let wedgesTwoDayMin = getWedgesMinForDay(deliveryDay) + getWedgesMinForDay((deliveryDay + 1) % 7);
             let wedgesShort = wedgesTwoDayMin - wedgesTotal;
             let wedgesAuditOrder = wedgesShort > 0 ? Math.max(Math.ceil(wedgesShort / 2) * 2, 2) : 0;
             masterAuditLines.push(`• *Wedges* | Stock: ${wedgesPkt} pkt ${wedgesKg}kg | Pending: ${wedgesPending} pkt | Order: *${wedgesAuditOrder > 0 ? wedgesAuditOrder + ' pkts' : 'Sufficient'}*`);
@@ -1484,7 +1536,7 @@
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
             });
 
-            let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend' : 'Weekday'})\n\n`;
+            let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend Delivery' : 'Weekday Delivery'})\n\n`;
             masterLogText += masterAuditLines.join('\n');
             masterLogText += `\n\n_All inventory closing stock & orders verified by Manager._`;
             const masterLogUrl = `https://wa.me/?text=${encodeURIComponent(masterLogText)}`;
