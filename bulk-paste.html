@@ -32,7 +32,7 @@
 
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
         }
 
         header {
@@ -69,9 +69,6 @@
             color: var(--text-color);
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .btn {
@@ -123,14 +120,15 @@
             background-color: #0d0d0d;
             border: 1px dashed var(--border-color);
             border-radius: 5px;
-            padding: 10px;
+            padding: 12px;
             margin-top: 10px;
             font-family: monospace;
             font-size: 13px;
             white-space: pre-wrap;
             word-break: break-word;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
+            line-height: 1.5;
         }
 
         .info-text {
@@ -146,13 +144,13 @@
     <div class="container">
         <header>
             <h1>TSG Bulk Paste & Inventory App</h1>
-            <p>Experimental WhatsApp Bulk Order Generator (Operational Cutoff: 10:00 AM)</p>
+            <p>Experimental WhatsApp Bulk Order Generator (10:00 AM Operational Cutoff)</p>
         </header>
 
         <!-- Step 1: Copy Template -->
         <div class="card">
             <h2>Step 1: Get Blank Template</h2>
-            <p class="info-text">Pehle blank WhatsApp template copy karein, apne WhatsApp par paste karke blanks (_____) fill karein, aur fir neeche paste karein.</p>
+            <p class="info-text">Pehle blank WhatsApp template copy karein, apne WhatsApp par paste karke closing inventory aur requirements (_____) fill karein, aur fir neeche paste karein.</p>
             <button class="btn" onclick="copyBlankTemplate()">📋 Copy Blank WhatsApp Template</button>
         </div>
 
@@ -166,21 +164,56 @@
 
         <!-- Results / Generated Output -->
         <div class="card" id="outputCard" style="display:none;">
-            <h2>Generated Vendor & Coordination Messages</h2>
+            <h2>Generated Vendor & Central Kitchen Orders</h2>
             <div id="vendorOutputContainer"></div>
         </div>
     </div>
 
     <script>
-        // Standard Title Case Items List (Separated Store & CK items correctly)
-        const templateItems = [
-            "Regular Sesame Bun", "Multigrain Bun", "French Fries", "Potato Wedges",
-            "Raw Thigh Boneless", "Raw Chicken Breast", "Raw Wings", "Raw Supreme", "Raw Popcorn", "Eggs", "Veal Kheema",
-            "Onions", "Tomato", "Lemon", "Green Chilli", "Peeled Garlic", "Carrot", "Ginger", "Coriander",
-            "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh"
-        ];
+        // Master Inventory items list matching complete inventory structure
+        const masterInventory = [
+            // --- BANDS / BAKERY & SIDES ---
+            { name: "Regular Sesame Bun", hasStore: true },
+            { name: "Multigrain Bun", hasStore: true },
+            { name: "French Fries", hasStore: true },
+            { name: "Potato Wedges", hasStore: true },
 
-        const ckExclusiveItems = ["Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh"];
+            // --- CHICKEN - MARINATED & RAW ---
+            { name: "Marinated Wings", hasStore: true },
+            { name: "Marinated Thigh Boneless", hasStore: true },
+            { name: "Marinated Supreme", hasStore: true },
+            { name: "Chicken Crunchies Coated and prepped", hasStore: true },
+            { name: "Chicken Patty", hasStore: true },
+            { name: "RAW WINGS", hasStore: true },
+            { name: "RAW SUPREME", hasStore: true },
+            { name: "RAW THIGH BONELESS", hasStore: true },
+            { name: "CHICKEN BREAST KHEEMA", hasStore: true },
+            { name: "CHICKEN POPCORN CUT", hasStore: true },
+            { name: "Fat Kheema", hasStore: true, isCKOnly: true },
+            { name: "Eggs", hasStore: true },
+
+            // --- BUFF ---
+            { name: "Frozen Buff Patty", hasStore: true },
+            { name: "Fresh Buff Patty (refridgerated)", hasStore: true },
+
+            // --- VEGETABLES (Store & CK) ---
+            { name: "Onions", hasStore: true },
+            { name: "Tomato", hasStore: true },
+            { name: "Iceberg Lettuce fresh", hasStore: true },
+            { name: "Green Chilli", hasStore: true },
+            { name: "Lemon", hasStore: true },
+            { name: "Peeled Garlic", hasStore: true },
+            { name: "Carrot", hasStore: true },
+            { name: "Green Capsicum", hasStore: true },
+            { name: "Ginger", hasStore: true },
+            { name: "Coriander", hasStore: true },
+            
+            // --- CK EXCLUSIVE VEGETABLES ---
+            { name: "Beetroot", hasStore: false, isCKOnly: true },
+            { name: "Frozen Green Peas", hasStore: false, isCKOnly: true },
+            { name: "French Beans", hasStore: false, isCKOnly: true },
+            { name: "Red Chilli Fresh", hasStore: false, isCKOnly: true }
+        ];
 
         function getOperationalDateKey() {
             let now = new Date();
@@ -194,8 +227,8 @@
         function copyBlankTemplate() {
             let opDate = getOperationalDateKey();
             let template = `*TSG Daily Inventory & Orders* (Op-Date: ${opDate})\n\n`;
-            templateItems.forEach(item => {
-                template += `${item}: _____\n`;
+            masterInventory.forEach(item => {
+                template += `${item.name}: _____\n`;
             });
             navigator.clipboard.writeText(template).then(() => {
                 alert("Blank WhatsApp Template copied to clipboard!");
@@ -220,28 +253,32 @@
                 }
             });
 
-            // Generate Clean Structured Output
+            // Generate Output
             let outputHtml = "<h3>📦 Processed Orders & Requirements:</h3>";
             outputHtml += `<div class="output-box">Operational Date: ${getOperationalDateKey()}\n`;
             outputHtml += `Total Items Captured: ${Object.keys(parsedData).length}\n\n`;
             
-            outputHtml += `--- VENDOR ORDERS (Store Items) ---\n`;
-            Object.keys(parsedData).forEach(item => {
-                // Exclude CK-exclusive items from store section
-                if (!ckExclusiveItems.includes(item) && item !== "TSG Daily Inventory & Orders") {
-                    outputHtml += `• ${item}: ${parsedData[item]}\n`;
+            outputHtml += `--- VENDOR ORDERS & STORE INVENTORY ---\n`;
+            masterInventory.forEach(item => {
+                // Skip CK-only exclusive items from the regular store order section
+                if (!item.isCKOnly && parsedData[item.name] !== undefined) {
+                    outputHtml += `• ${item.name}: ${parsedData[item.name]}\n`;
                 }
             });
 
-            outputHtml += `\n--- CENTRAL KITCHEN ORDER REQUIREMENT ---\n`;
+            outputHtml += `\n--- CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA ---\n`;
             let uniqueCkCheck = new Set();
-            templateItems.forEach(item => {
-                if (parsedData[item] && !uniqueCkCheck.has(item)) {
-                    uniqueCkCheck.add(item);
-                    outputHtml += `• ${item}: ${parsedData[item]}\n`;
+            masterInventory.forEach(item => {
+                // Include items required for Central Kitchen production
+                if (parsedData[item.name] !== undefined && !uniqueCkCheck.has(item.name)) {
+                    // Include all vegetables, raw items, and Fat Kheema in CK section
+                    if (item.isCKOnly || ['Onions', 'Tomato', 'Green Chilli', 'Peeled Garlic', 'Carrot', 'Ginger', 'Coriander', 'Beetroot', 'Frozen Green Peas', 'French Beans', 'Red Chilli Fresh', 'Fat Kheema', 'CHICKEN BREAST KHEEMA'].includes(item.name)) {
+                        uniqueCkCheck.add(item.name);
+                        outputHtml += `• ${item.name}: ${parsedData[item.name]}\n`;
+                    }
                 }
             });
-            outputHtml += `• Fat Kheema: Calculated as per standard batch rules\n`;
+            outputHtml += `• Fat Kheema: Generated as per standard batch calculation rules\n`;
             outputHtml += `</div>`;
 
             document.getElementById('vendorOutputContainer').innerHTML = outputHtml;
