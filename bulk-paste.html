@@ -126,7 +126,7 @@
             font-size: 13px;
             white-space: pre-wrap;
             word-break: break-word;
-            max-height: 400px;
+            max-height: 450px;
             overflow-y: auto;
             line-height: 1.5;
         }
@@ -170,54 +170,31 @@
     </div>
 
     <script>
-        // Master Inventory items list matching complete inventory structure
-        const masterInventory = [
-            // --- BANDS / BAKERY & SIDES ---
-            { name: "Regular Sesame Bun", hasStore: true },
-            { name: "Multigrain Bun", hasStore: true },
-            { name: "French Fries", hasStore: true },
-            { name: "Potato Wedges", hasStore: true },
-
-            // --- CHICKEN - MARINATED & RAW ---
-            { name: "Marinated Wings", hasStore: true },
-            { name: "Marinated Thigh Boneless", hasStore: true },
-            { name: "Marinated Supreme", hasStore: true },
-            { name: "Chicken Crunchies Coated and prepped", hasStore: true },
-            { name: "Chicken Patty", hasStore: true },
-            { name: "RAW WINGS", hasStore: true },
-            { name: "RAW SUPREME", hasStore: true },
-            { name: "RAW THIGH BONELESS", hasStore: true },
-            { name: "CHICKEN BREAST KHEEMA", hasStore: true },
-            { name: "CHICKEN POPCORN CUT", hasStore: true },
-            { name: "Fat Kheema", hasStore: true, isCKOnly: true },
-            { name: "Eggs", hasStore: true },
-
-            // --- BUFF ---
-            { name: "Frozen Buff Patty", hasStore: true },
-            { name: "Fresh Buff Patty (refridgerated)", hasStore: true },
-
-            // --- VEGETABLES (Store & CK) ---
-            { name: "Onions", hasStore: true },
-            { name: "Tomato", hasStore: true },
-            { name: "Iceberg Lettuce fresh", hasStore: true },
-            { name: "Green Chilli", hasStore: true },
-            { name: "Lemon", hasStore: true },
-            { name: "Peeled Garlic", hasStore: true },
-            { name: "Carrot", hasStore: true },
-            { name: "Green Capsicum", hasStore: true },
-            { name: "Ginger", hasStore: true },
-            { name: "Coriander", hasStore: true },
-            
-            // --- CK EXCLUSIVE VEGETABLES ---
-            { name: "Beetroot", hasStore: false, isCKOnly: true },
-            { name: "Frozen Green Peas", hasStore: false, isCKOnly: true },
-            { name: "French Beans", hasStore: false, isCKOnly: true },
-            { name: "Red Chilli Fresh", hasStore: false, isCKOnly: true }
-        ];
+        // Categorized Master Inventory items list
+        const categories = {
+            "BAKERY & SIDES": [
+                "Regular Sesame Bun", "Multigrain Bun", "French Fries", "Potato Wedges"
+            ],
+            "CHICKEN & POULTRY": [
+                "Marinated Wings", "Marinated Thigh Boneless", "Marinated Supreme", 
+                "Chicken Crunchies Coated and prepped", "Chicken Patty", 
+                "RAW WINGS", "RAW SUPREME", "RAW THIGH BONELESS", 
+                "CHICKEN BREAST KHEEMA", "CHICKEN POPCORN CUT", "Eggs"
+            ],
+            "BUFF": [
+                "Frozen Buff Patty", "Fresh Buff Patty (refridgerated)"
+            ],
+            "VEGETABLES (STORE & CK)": [
+                "Onions", "Tomato", "Iceberg Lettuce fresh", "Green Chilli", 
+                "Lemon", "Peeled Garlic", "Carrot", "Green Capsicum", "Ginger", "Coriander"
+            ],
+            "CENTRAL KITCHEN EXCLUSIVE": [
+                "Fat Kheema", "Beetroot", "Frozen Green Peas", "French Beans", "Red Chilli Fresh"
+            ]
+        };
 
         function getOperationalDateKey() {
             let now = new Date();
-            // Operational cutoff: 10:00 AM. Before 10 AM belongs to previous operational day.
             if (now.getHours() < 10) {
                 now.setDate(now.getDate() - 1);
             }
@@ -227,11 +204,17 @@
         function copyBlankTemplate() {
             let opDate = getOperationalDateKey();
             let template = `*TSG Daily Inventory & Orders* (Op-Date: ${opDate})\n\n`;
-            masterInventory.forEach(item => {
-                template += `${item.name}: _____\n`;
+            
+            Object.keys(categories).forEach(cat => {
+                template += `*[ ${cat} ]*\n`;
+                categories[cat].forEach(item => {
+                    template += `${item}: _____\n`;
+                });
+                template += `\n`;
             });
+
             navigator.clipboard.writeText(template).then(() => {
-                alert("Blank WhatsApp Template copied to clipboard!");
+                alert("Blank WhatsApp Template with Headers copied to clipboard!");
             });
         }
 
@@ -247,38 +230,45 @@
             lines.forEach(line => {
                 let parts = line.split(':');
                 if (parts.length >= 2) {
-                    let key = parts[0].replace(/[*_]/g, '').trim();
+                    let key = parts[0].replace(/[*_\[\]]/g, '').trim();
                     let val = parts.slice(1).join(':').replace(/[*_]/g, '').trim();
-                    if (key) parsedData[key] = val;
+                    if (key && !categories[key.toUpperCase()]) {
+                        parsedData[key] = val;
+                    }
                 }
             });
 
-            // Generate Output
+            // Generate Structured Clean Output
             let outputHtml = "<h3>📦 Processed Orders & Requirements:</h3>";
             outputHtml += `<div class="output-box">Operational Date: ${getOperationalDateKey()}\n`;
             outputHtml += `Total Items Captured: ${Object.keys(parsedData).length}\n\n`;
             
             outputHtml += `--- VENDOR ORDERS & STORE INVENTORY ---\n`;
-            masterInventory.forEach(item => {
-                // Skip CK-only exclusive items from the regular store order section
-                if (!item.isCKOnly && parsedData[item.name] !== undefined) {
-                    outputHtml += `• ${item.name}: ${parsedData[item.name]}\n`;
+            Object.keys(categories).forEach(cat => {
+                if (cat !== "CENTRAL KITCHEN EXCLUSIVE") {
+                    outputHtml += `\n[ ${cat} ]\n`;
+                    categories[cat].forEach(item => {
+                        if (parsedData[item] !== undefined) {
+                            outputHtml += `• ${item}: ${parsedData[item]}\n`;
+                        }
+                    });
                 }
             });
 
             outputHtml += `\n--- CENTRAL KITCHEN ORDER REQUIREMENT & FAT KHEEMA ---\n`;
-            let uniqueCkCheck = new Set();
-            masterInventory.forEach(item => {
-                // Include items required for Central Kitchen production
-                if (parsedData[item.name] !== undefined && !uniqueCkCheck.has(item.name)) {
-                    // Include all vegetables, raw items, and Fat Kheema in CK section
-                    if (item.isCKOnly || ['Onions', 'Tomato', 'Green Chilli', 'Peeled Garlic', 'Carrot', 'Ginger', 'Coriander', 'Beetroot', 'Frozen Green Peas', 'French Beans', 'Red Chilli Fresh', 'Fat Kheema', 'CHICKEN BREAST KHEEMA'].includes(item.name)) {
-                        uniqueCkCheck.add(item.name);
-                        outputHtml += `• ${item.name}: ${parsedData[item.name]}\n`;
-                    }
+            outputHtml += `\n[ CENTRAL KITCHEN PRODUCTION ]\n`;
+            categories["CENTRAL KITCHEN EXCLUSIVE"].forEach(item => {
+                if (parsedData[item] !== undefined) {
+                    outputHtml += `• ${item}: ${parsedData[item]}\n`;
                 }
             });
-            outputHtml += `• Fat Kheema: Generated as per standard batch calculation rules\n`;
+            // Also include key vegetables needed for CK
+            ["Onions", "Tomato", "Green Chilli", "Peeled Garlic", "Carrot", "Ginger", "Coriander"].forEach(item => {
+                if (parsedData[item] !== undefined) {
+                    outputHtml += `• ${item} (CK Req): ${parsedData[item]}\n`;
+                }
+            });
+
             outputHtml += `</div>`;
 
             document.getElementById('vendorOutputContainer').innerHTML = outputHtml;
