@@ -372,7 +372,7 @@
         <button type="button" id="card-buns" class="dash-card" onclick="handleCardClick('buns')">
             <div>
                 <div class="dash-title">🍞 Buns Orders</div>
-                <div class="dash-sub">Regular Sesame Bun & Multigrain Bun</div>
+                <div class="dash-sub">Regular Sesame Bun & Multigrain Bun (Lokhandwala & Khar)</div>
             </div>
             <div id="status-buns" style="font-size: 1.2rem;">➡️</div>
         </button>
@@ -380,15 +380,15 @@
         <button type="button" id="card-fries" class="dash-card" onclick="handleCardClick('fries')">
             <div>
                 <div class="dash-title">🍟 Fries & Wedges Order</div>
-                <div class="dash-sub">TSG Hyfun Fries (2-Day Lookahead)</div>
+                <div class="dash-sub">TSG Hyfun Fries (Thursday Lookahead)</div>
             </div>
             <div id="status-fries" style="font-size: 1.2rem;">➡️</div>
         </button>
 
         <button type="button" id="card-prep" class="dash-card" onclick="handleCardClick('prep')">
             <div>
-                <div class="dash-title">🔪 In-House Prep (Tangles & Sticks)</div>
-                <div class="dash-sub">Onion Tangles & Mozzarella Sticks Pre-Prep</div>
+                <div class="dash-title">🔪 In-House Prep (Tangles, Sticks & Hummus)</div>
+                <div class="dash-sub">Onion Tangles, Mozzarella Sticks & Hummus Pre-Prep</div>
             </div>
             <div id="status-prep" style="font-size: 1.2rem;">➡️</div>
         </button>
@@ -442,7 +442,7 @@
 
     <!-- 4. BUNS VIEW -->
     <div id="buns-section" class="category-view">
-        <div class="section-title">Buns Orders (Smart Order)</div>
+        <div class="section-title">Buns Orders (Lokhandwala & Khar West)</div>
         <div id="buns-inputs-list"></div>
         <div class="nav-buttons">
             <button class="btn-nav" onclick="goHome()">⬅ Back</button>
@@ -462,7 +462,7 @@
 
     <!-- 6. IN-HOUSE PREP VIEW -->
     <div id="prep-section" class="category-view">
-        <div class="section-title">In-House Prep (Tangles & Sticks)</div>
+        <div class="section-title">In-House Prep (Tangles, Sticks & Hummus)</div>
         <div id="prep-inputs-list"></div>
         <div class="nav-buttons">
             <button class="btn-nav" onclick="goHome()">⬅ Back</button>
@@ -544,15 +544,37 @@
             localStorage.setItem('status_sauces', 'false');
         }
 
-        // Advance 1-day check for delivery (Orders placed tonight arrive tomorrow)
-        const deliveryDate = new Date();
+        // Operational Date & Delivery Date calculation
+        let opDateObj = new Date();
+        if (opDateObj.getHours() < 10) {
+            opDateObj.setDate(opDateObj.getDate() - 1);
+        }
+        const deliveryDate = new Date(opDateObj);
         deliveryDate.setDate(deliveryDate.getDate() + 1);
-        const deliveryDay = deliveryDate.getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
+
+        const deliveryDay = deliveryDate.getDay(); // 0 = Sun, 4 = Thu, 5 = Fri, 6 = Sat
         const isWeekendMode = (deliveryDay === 5 || deliveryDay === 6 || deliveryDay === 0);
+        const isThursday = (deliveryDay === 4); // Delivery on Thursday (Order placed Wednesday night) or order placed Thursday night for Friday? Wait, let's check deliveryDay for Thursday order: if order placed Thursday night, deliveryDay = Friday (5). If order placed Wednesday night, deliveryDay = Thursday (4).
+        // Let's check day of week when order is placed:
+        const orderPlacementDay = opDateObj.getDay(); // 4 = Thursday order placement
 
         document.getElementById('day-badge').innerText = isWeekendMode ? 
             "🔥 Weekend Delivery Mode Active (Fri-Sun Prep / Higher Targets)" : 
             "🟢 Weekday Delivery Mode Active (Standard Targets)";
+
+        function getFormattedDeliveryDateStr() {
+            let d = deliveryDate.getDate().toString().padStart(2, '0');
+            let m = (deliveryDate.getMonth() + 1).toString().padStart(2, '0');
+            let y = deliveryDate.getFullYear().toString().slice(-2);
+            return `${d}-${m}-${y}`;
+        }
+
+        function getFormattedFullDeliveryDateStr() {
+            let d = deliveryDate.getDate().toString().padStart(2, '0');
+            let m = (deliveryDate.getMonth() + 1).toString().padStart(2, '0');
+            let y = deliveryDate.getFullYear();
+            return `${d}/${m}/${y}`;
+        }
 
         function getSesameMinForDay(dayIndex) {
             let wknd = (dayIndex === 5 || dayIndex === 6 || dayIndex === 0);
@@ -617,7 +639,7 @@
             { id: 'raw_thigh', name: "Raw Thigh Boneless", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "THIGH BONELESS", isThigh: true },
             { id: 'raw_kheema', name: "Chicken Breast Kheema", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "CHICKEN BREAST KHEEMA" },
             { id: 'raw_popcorn', name: "Chicken Popcorn Cut", cat: "Chicken - Raw Stock", unit: "KG", vendorName: "CHICKEN POPCORN CUT" },
-            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "KG", isFat: true, vendorName: "FAT KHEEMA" },
+            { id: 'raw_fat', name: "Fat Kheema", cat: "Chicken - Raw Stock", unit: "KG", isFat: true, vendorName: "FAT KHEEMA", hasCK: true },
 
             { id: 'eggs', name: "Eggs", cat: "Eggs", unit: "PCS", wdMin: 20, wdMax: 60, weMin: 20, weMax: 60, isEggs: true },
 
@@ -688,6 +710,16 @@
                             </div>
                         </div>
                     `;
+                    if (item.hasCK) {
+                        chickHtml += `
+                            <div class="input-grid" style="margin-top: 8px;">
+                                <div class="input-box">
+                                    <label>CK Bulk Requirement in <strong style="color:var(--warning)">${item.unit}</strong></label>
+                                    <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" step="0.5" id="ck-${item.id}" class="item-input" placeholder="Enter CK bulk req in **${item.unit}**" />
+                                </div>
+                            </div>
+                        `;
+                    }
                     chickHtml += `</div>`;
                 });
             });
@@ -712,49 +744,45 @@
             });
             buffCont.innerHTML = buffHtml;
 
-            // Buns Orders
+            // Buns Orders (Lokhandwala & Khar West)
             const bunsCont = document.getElementById('buns-inputs-list');
-            let lastSesameBunOrder = localStorage.getItem('tsg_last_sesame_bun_order') || 0;
-            let lastMultiBunOrder = localStorage.getItem('tsg_last_multi_bun_order') || 0;
             let minToday = getSesameMinForDay(deliveryDay);
             let minTomorrow = getSesameMinForDay((deliveryDay + 1) % 7);
 
             bunsCont.innerHTML = `
-                <div class="item-card">
-                    <div class="item-name">Regular Sesame Bun</div>
-                    <div class="item-sub">Rule: MOQ 40 pcs | 2-Day Lookahead (Delivery Min: ${minToday}, Next Min: ${minTomorrow})</div>
-                    <div class="input-grid" style="gap: 12px;">
+                <div class="item-card" style="border-left: 4px solid var(--primary);">
+                    <div class="item-name">🏢 Andheri Lokhandwala Store</div>
+                    <div class="item-sub">Rule: MOQ 40 pcs (Sesame) | MOQ 30 pcs (Multigrain) | 2-Day Lookahead (Min: ${minToday}, Next Min: ${minTomorrow})</div>
+                    <div class="input-grid" style="gap: 12px; margin-top: 8px;">
                         <div class="input-box">
-                            <label>Closing Stock of Regular Sesame Bun in <strong style="color:var(--warning)">PCS</strong></label>
-                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-sesame-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                            <label>Regular Sesame Bun Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-sesame-lok" class="item-input" placeholder="Lokhandwala Sesame Stock" />
                         </div>
                         <div class="input-box">
-                            <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
-                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-sesame" class="item-input" value="${lastSesameBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                            <label>Multigrain Bun Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-multi-lok" class="item-input" placeholder="Lokhandwala Multigrain Stock" />
                         </div>
                     </div>
                 </div>
 
-                <div class="item-card" style="margin-top: 15px;">
-                    <div class="item-name">Multigrain Bun</div>
-                    <div class="item-sub">Rule: Min 6 pcs, Max 30 pcs | MOQ 30 pcs</div>
-                    <div class="input-grid" style="gap: 12px;">
+                <div class="item-card" style="margin-top: 15px; border-left: 4px solid var(--warning);">
+                    <div class="item-name">🏢 Khar West Store (-15 Buns Base vs Lokhandwala)</div>
+                    <div class="item-sub">Rule: MOQ 40 pcs (Sesame) | MOQ 30 pcs (Multigrain) | Targets are 15 pcs lesser than Lokhandwala</div>
+                    <div class="input-grid" style="gap: 12px; margin-top: 8px;">
                         <div class="input-box">
-                            <label>Closing Stock of Multigrain Bun in <strong style="color:var(--warning)">PCS</strong></label>
-                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-multi-bun" class="item-input" placeholder="Enter stock in **PCS**" />
+                            <label>Regular Sesame Bun Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-sesame-khar" class="item-input" placeholder="Khar Sesame Stock" />
                         </div>
                         <div class="input-box">
-                            <label>Pending Delivery Arriving Today in <strong style="color:var(--warning)">PCS</strong> (Auto-remembered)</label>
-                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-multi" class="item-input" value="${lastMultiBunOrder}" placeholder="Enter pending delivery in **PCS**" />
+                            <label>Multigrain Bun Closing Stock (<strong style="color:var(--warning)">PCS</strong>)</label>
+                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-multi-khar" class="item-input" placeholder="Khar Multigrain Stock" />
                         </div>
                     </div>
                 </div>
             `;
 
-            // Fries & Wedges Orders
+            // Fries & Wedges Orders (No pending delivery, Thursday lookahead rule)
             const friesCont = document.getElementById('fries-inputs-list');
-            let lastFriesOrder = localStorage.getItem('tsg_last_fries_order') || 0;
-            let lastWedgesOrder = localStorage.getItem('tsg_last_wedges_order') || 0;
             let friesMinToday = getFriesMinForDay(deliveryDay);
             let friesMinTomorrow = getFriesMinForDay((deliveryDay + 1) % 7);
             let wedgesMinToday = getWedgesMinForDay(deliveryDay);
@@ -763,7 +791,7 @@
             friesCont.innerHTML = `
                 <div class="item-card">
                     <div class="item-name">Fries (TSG Hyfun Fries)</div>
-                    <div class="item-sub">Rule: MOQ 1 Box = 5 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Delivery Min: ${friesMinToday} pkt, Next Min: ${friesMinTomorrow} pkt)</div>
+                    <div class="item-sub">Rule: MOQ 1 Box = 5 Pkts | 1 Pkt = 2.5 KG | Advance Lookahead applies on Thursdays</div>
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
@@ -773,16 +801,12 @@
                             <label>Open Packet Remaining Weight (<strong style="color:var(--warning)">KG</strong>)</label>
                             <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" max="2.5" step="any" id="stock-fries-kg" class="item-input" placeholder="Kg (e.g. 1.5)" />
                         </div>
-                        <div class="input-box">
-                            <label>Pending Delivery Arriving Today (<strong style="color:var(--warning)">PKT</strong>)</label>
-                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-fries" class="item-input" value="${lastFriesOrder}" placeholder="Pending pkts" />
-                        </div>
                     </div>
                 </div>
 
                 <div class="item-card" style="margin-top: 15px;">
                     <div class="item-name">Wedges (TSG Hyfun Fries)</div>
-                    <div class="item-sub">Rule: MOQ 2 Pkts | 1 Pkt = 2.5 KG | 2-Day Lookahead (Delivery Min: ${wedgesMinToday} pkt, Next Min: ${wedgesMinTomorrow} pkt)</div>
+                    <div class="item-sub">Rule: MOQ 2 Pkts | 1 Pkt = 2.5 KG | Advance Lookahead applies on Thursdays</div>
                     <div class="input-grid" style="gap: 12px;">
                         <div class="input-box">
                             <label>Full Packets Closing Stock (<strong style="color:var(--warning)">PKT</strong>)</label>
@@ -792,15 +816,11 @@
                             <label>Open Packet Remaining Weight (<strong style="color:var(--warning)">KG</strong>)</label>
                             <input type="number" pattern="[0-9]*" inputmode="decimal" min="0" max="2.5" step="any" id="stock-wedges-kg" class="item-input" placeholder="Kg (e.g. 1)" />
                         </div>
-                        <div class="input-box">
-                            <label>Pending Delivery Arriving Today (<strong style="color:var(--warning)">PKT</strong>)</label>
-                            <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="pending-delivery-wedges" class="item-input" value="${lastWedgesOrder}" placeholder="Pending pkts" />
-                        </div>
                     </div>
                 </div>
             `;
 
-            // In-House Prep
+            // In-House Prep (Tangles, Sticks & Hummus)
             const prepCont = document.getElementById('prep-inputs-list');
             let otMin = isWeekendMode ? 7 : 5;
             let otMax = isWeekendMode ? 14 : 10;
@@ -823,6 +843,15 @@
                     <div class="input-box">
                         <label>Closing Stock in <strong style="color:var(--warning)">Portions</strong></label>
                         <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-mozzarella-sticks" class="item-input" placeholder="Enter stock in portions" />
+                    </div>
+                </div>
+
+                <div class="item-card" style="margin-top: 15px;">
+                    <div class="item-name">Hummus</div>
+                    <div class="item-sub">Target Range: Min <span class="unit-badge">5 packets</span> / Max <span class="unit-badge">15 packets</span> | Chana Soak Trigger: <= 5 packets</div>
+                    <div class="input-box">
+                        <label>Closing Stock in <strong style="color:var(--warning)">Packets</strong></label>
+                        <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" step="1" id="stock-hummus" class="item-input" placeholder="Enter stock in packets" />
                     </div>
                 </div>
             `;
@@ -1050,12 +1079,8 @@
                     let marinatedStock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
                     
                     if (item.isBatchPatty) {
-                        // Batch Patty Logic (26 pcs = 2 kg kheema + 250g fat)
                         let batchSize = item.batchPcs;
                         let kheemaPerBatch = item.batchKheemaKg;
-                        let totalAvailablePatty = marinatedStock; // assuming raw kheema is separate in rawStock
-
-                        // Check total requirement vs available marinated + raw backup equivalent
                         let rawKheemaAvail = rawStock['raw_kheema'] || 0;
                         let equivalentPattyFromRaw = (rawKheemaAvail / kheemaPerBatch) * batchSize;
                         let totalCombinedStock = marinatedStock + equivalentPattyFromRaw;
@@ -1078,16 +1103,13 @@
                                     marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs) aur raw stock order kar diya gaya hai. Kal milte hi marinate karke patty bana dena.`);
                                 }
                             } else {
-                                // Marinated is below min, but raw stock is enough locally without ordering
                                 marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw stock rakha hai, marinate kar dena.`);
                             }
                         }
                     } else {
-                        // Standard Marinated Items (Wings, Thigh, Supreme, Crunchies)
                         let rawKey = item.rawKey;
-                        let yieldRate = item.yieldPerKg; // Wings: 20, Thigh: 10, Supreme: 18, Popcorn: 7
+                        let yieldRate = item.yieldPerKg;
                         let rawAvailable = rawStock[rawKey] || 0;
-                        
                         let unitEquivalentFromRaw = rawAvailable * yieldRate;
                         let totalCombinedStock = marinatedStock + unitEquivalentFromRaw;
 
@@ -1117,11 +1139,15 @@
                     }
                 });
 
-                // Fat Kheema Automatic Rule: 250g per 2 kg breast kheema ordered
+                // Fat Kheema Automatic Rule + CK Bulk Requirement
                 let totalKheemaOrdered = chickenOrderItems.filter(i => i.name === "CHICKEN BREAST KHEEMA").reduce((sum, i) => sum + i.qty, 0);
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
-                if (totalKheemaOrdered > 0 && fatStock === 0) {
+                let fatCkReq = parseFloat(document.getElementById(`ck-raw_fat`).value) || 0;
+
+                if (totalKheemaOrdered > 0 && fatStock === 0 && fatCkReq === 0) {
                     chickenOrderItems.push({ name: "FAT KHEEMA", qty: 0.25, unit: "kg", isFatFormatted: "250 gm" });
+                } else if (fatCkReq > 0) {
+                    chickenOrderItems.push({ name: "FAT KHEEMA", qty: fatCkReq, unit: "kg" });
                 }
 
                 let eggsStock = parseFloat(document.getElementById(`stock-eggs`).value) || 0;
@@ -1136,7 +1162,7 @@
 
                 let chickenItemsList = [];
                 for (const [name, data] of Object.entries(consolidatedChicken)) {
-                    if (data.isFatFormatted) {
+                    if (data.isFatFormatted && data.qty === 0.25) {
                         chickenItemsList.push(`• ${name}: *${data.isFatFormatted}*`);
                     } else if (data.isThigh) {
                         chickenItemsList.push(`• ${name}: *${data.qty} kg* (${data.qty * 10} pcs of 100g proper weight proper size: ${data.qty} kg = ${data.qty * 10} pcs)`);
@@ -1147,6 +1173,7 @@
 
                 let hasChickenOrder = chickenItemsList.length > 0;
                 let hasPrep = marinateInstructions.length > 0 || eggsOrderNeeded;
+                let workDateStr = getFormattedFullDeliveryDateStr();
 
                 if (!hasChickenOrder && !hasPrep) {
                     box.innerHTML = `
@@ -1170,7 +1197,7 @@
                         `;
                     }
                     if (hasPrep) {
-                        let coordText = `📋 *CHICKEN MARINATION & PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n`;
+                        let coordText = `📋 *CHICKEN MARINATION & PREP INSTRUCTIONS*\nDate: ${workDateStr}\n\n`;
                         if (marinateInstructions.length > 0) coordText += marinateInstructions.join('\n\n');
                         if (eggsOrderNeeded) coordText += `\n\n⚠️ *Eggs low hain!* Kripya Hyperpure se *${eggsTrayOrder} pcs* (${eggsTrayOrder/30} trays) order kar dein.`;
                         let coordUrl = `https://wa.me/?text=${encodeURIComponent(coordText)}`;
@@ -1214,72 +1241,66 @@
                 }
 
             } else if (sectionName === 'buns') {
-                let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value);
-                let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
+                // Lokhandwala Stock
+                let sesameLok = parseFloat(document.getElementById('stock-sesame-lok').value);
+                let multiLok = parseFloat(document.getElementById('stock-multi-lok').value);
+                // Khar West Stock
+                let sesameKhar = parseFloat(document.getElementById('stock-sesame-khar').value);
+                let multiKhar = parseFloat(document.getElementById('stock-multi-khar').value);
 
-                if (isNaN(sesameStock)) {
-                    alert("⚠️ Closing stock of Regular Sesame Bun enter karna zaroori hai!");
-                    document.getElementById('stock-sesame-bun').focus();
+                if (isNaN(sesameLok) || isNaN(multiLok) || isNaN(sesameKhar) || isNaN(multiKhar)) {
+                    alert("⚠️ Sabhi Buns stores (Lokhandwala & Khar) ka closing stock enter karna zaroori hai!");
                     return;
                 }
 
-                let totalSesameAvailable = sesameStock + sesamePending;
                 let minToday = getSesameMinForDay(deliveryDay);
                 let minTomorrow = getSesameMinForDay((deliveryDay + 1) % 7);
-                let twoDayMin = minToday + minTomorrow;
+                let lokTwoDayMin = minToday + minTomorrow; // e.g. 60+60 = 120 or 80+80=160
+                let kharTwoDayMin = lokTwoDayMin - 30; // 15 buns lesser for each day (-15 * 2)
 
-                let sesameShortfall = twoDayMin - totalSesameAvailable;
-                let sesameOrderQty = sesameShortfall > 0 ? Math.max(sesameShortfall, 40) : 0;
-                localStorage.setItem('tsg_last_sesame_bun_order', sesameOrderQty);
+                // Lokhandwala calculations
+                let lokSesameShort = lokTwoDayMin - sesameLok;
+                let lokSesameOrder = lokSesameShort > 0 ? Math.max(lokSesameShort, 40) : 0;
+                let lokMultiNeeded = (multiLok <= 6) ? (30 - multiLok) : 0;
+                let lokMultiOrder = lokMultiNeeded > 0 ? Math.max(lokMultiNeeded, 30) : 0;
 
-                let multiStock = parseFloat(document.getElementById('stock-multi-bun').value);
-                let multiPending = parseFloat(document.getElementById('pending-delivery-multi').value) || 0;
+                // Khar calculations (-15 buns target base)
+                let kharSesameShort = kharTwoDayMin - sesameKhar;
+                let kharSesameOrder = kharSesameShort > 0 ? Math.max(kharSesameShort, 40) : 0;
+                let kharMultiNeeded = (multiKhar <= (6 - 3)) ? (30 - multiKhar) : 0; // 3 lesser base for multigrain or same min rule
+                let kharMultiOrder = kharMultiNeeded > 0 ? Math.max(kharMultiNeeded, 30) : 0;
 
-                if (isNaN(multiStock)) {
-                    alert("⚠️ Closing stock of Multigrain Bun enter karna zaroori hai!");
-                    document.getElementById('stock-multi-bun').focus();
-                    return;
-                }
+                let deliveryDateStr = getFormattedDeliveryDateStr();
 
-                let totalMultiAvailable = multiStock + multiPending;
-                let multiNeeded = (totalMultiAvailable <= 6) ? (30 - totalMultiAvailable) : 0;
-                let multiOrderQty = multiNeeded > 0 ? Math.max(multiNeeded, 30) : 0;
-                localStorage.setItem('tsg_last_multi_bun_order', multiOrderQty);
+                let bunsOrderText = `TSG Andheri Andheri 75654
+Order for tomorrow
+${deliveryDateStr}
 
-                let bunsOrderList = [];
-                if (sesameOrderQty > 0) bunsOrderList.push(`• Regular Sesame Bun: *${sesameOrderQty} pcs*`);
-                if (multiOrderQty > 0) bunsOrderList.push(`• Multigrain Bun: *${multiOrderQty} pcs*`);
+Andheri Lokhandwala
+5" regular bun with black sesame seeds - ${lokSesameOrder > 0 ? lokSesameOrder : '00'}
+Multigrain bun - ${lokMultiOrder > 0 ? lokMultiOrder : '00'}
 
-                if (bunsOrderList.length === 0) {
-                    box.innerHTML = `
-                        <div class="supplier-box" style="text-align:center; padding:20px;">
-                            <h3>👍 Stock is sufficient for both bun types. No bun order needed today.</h3>
-                            <button class="btn-primary-action" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
+Khar West
+5" regular bun with black sesame seeds - ${kharSesameOrder > 0 ? kharSesameOrder : '00'}
+Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
+
+                let bunsWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(bunsOrderText)}`;
+
+                box.innerHTML = `
+                    <div class="supplier-box">
+                        <div class="supplier-title">🍞 Send Order to Pantree / Buns Supplier</div>
+                        <div class="instruction-text">
+                            👉 Exact screenshot format matched for Pantree WhatsApp order.
                         </div>
-                    `;
-                } else {
-                    let bunsOrderText = `*Order for The Serial Griller Lokhandwala*\n\n` + bunsOrderList.join('\n') + `\n\nKripya karke isko jaldi deliver karwa dijiye. Dhanyawad!`;
-                    let bunsWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(bunsOrderText)}`;
-
-                    box.innerHTML = `
-                        <div class="supplier-box">
-                            <div class="supplier-title">🍞 Send Order to "🍔🍔THE SERIAL GRILLER 🍔🥪"</div>
-                            <div class="instruction-text">
-                                👉 <strong>Regular Sesame Bun:</strong> Available (${totalSesameAvailable}) vs 2-Day Min Req (${twoDayMin}) -> Order: <strong>${sesameOrderQty} pcs</strong> (MOQ 40).<br>
-                                👉 <strong>Multigrain Bun:</strong> Available (${totalMultiAvailable}) -> Order: <strong>${multiOrderQty} pcs</strong> (MOQ 30).<br>
-                                💾 <em>Note:</em> Orders have been saved to memory for tomorrow's pending delivery check.
-                            </div>
-                            <div class="order-list">${bunsOrderText}</div>
-                            <a href="${bunsWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('buns')">Send Buns Order via WhatsApp</a>
-                            <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
-                        </div>
-                    `;
-                }
+                        <div class="order-list">${bunsOrderText}</div>
+                        <a href="${bunsWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('buns')">Send Buns Order via WhatsApp</a>
+                        <button class="btn-primary-action" style="margin-top:15px;" onclick="markSectionComplete('buns')">Done & Go to Home Page ✅</button>
+                    </div>
+                `;
 
             } else if (sectionName === 'fries') {
                 let friesPkt = parseFloat(document.getElementById('stock-fries-pkt').value);
                 let friesKg = parseFloat(document.getElementById('stock-fries-kg').value) || 0;
-                let friesPending = parseFloat(document.getElementById('pending-delivery-fries').value) || 0;
 
                 if (isNaN(friesPkt)) {
                     alert("⚠️ Fries closing stock enter karna zaroori hai!");
@@ -1289,20 +1310,19 @@
 
                 let totalFriesKg = (friesPkt * 2.5) + friesKg;
                 let totalFriesPkts = totalFriesKg / 2.5;
-                let totalFriesAvailable = totalFriesPkts + friesPending;
 
                 let friesMinToday = getFriesMinForDay(deliveryDay);
                 let friesMinTomorrow = getFriesMinForDay((deliveryDay + 1) % 7);
-                let friesTwoDayMin = friesMinToday + friesMinTomorrow;
+                
+                // Advance ordering logic applicable ONLY on Thursdays (orderPlacementDay === 4)
+                let friesTarget = isThursday ? (friesMinToday + friesMinTomorrow) : friesMinToday;
 
-                let friesShortfall = friesTwoDayMin - totalFriesAvailable;
+                let friesShortfall = friesTarget - totalFriesPkts;
                 let friesOrderQty = friesShortfall > 0 ? Math.ceil(friesShortfall / 5) * 5 : 0;
                 if (friesShortfall > 0 && friesOrderQty < 5) friesOrderQty = 5;
-                localStorage.setItem('tsg_last_fries_order', friesOrderQty);
 
                 let wedgesPkt = parseFloat(document.getElementById('stock-wedges-pkt').value);
                 let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg').value) || 0;
-                let wedgesPending = parseFloat(document.getElementById('pending-delivery-wedges').value) || 0;
 
                 if (isNaN(wedgesPkt)) {
                     alert("⚠️ Wedges closing stock enter karna zaroori hai!");
@@ -1312,15 +1332,13 @@
 
                 let totalWedgesKg = (wedgesPkt * 2.5) + wedgesKg;
                 let totalWedgesPkts = totalWedgesKg / 2.5;
-                let totalWedgesAvailable = totalWedgesPkts + wedgesPending;
 
                 let wedgesMinToday = getWedgesMinForDay(deliveryDay);
                 let wedgesMinTomorrow = getWedgesMinForDay((deliveryDay + 1) % 7);
-                let wedgesTwoDayMin = wedgesMinToday + wedgesMinTomorrow;
+                let wedgesTarget = isThursday ? (wedgesMinToday + wedgesMinTomorrow) : wedgesMinToday;
 
-                let wedgesShortfall = wedgesTwoDayMin - totalWedgesAvailable;
+                let wedgesShortfall = wedgesTarget - totalWedgesPkts;
                 let wedgesOrderQty = wedgesShortfall > 0 ? Math.max(Math.ceil(wedgesShortfall / 2) * 2, 2) : 0;
-                localStorage.setItem('tsg_last_wedges_order', wedgesOrderQty);
 
                 let friesOrderList = [];
                 if (friesOrderQty > 0) friesOrderList.push(`• Fries: *${friesOrderQty} pkts* (${friesOrderQty/5} box)`);
@@ -1329,7 +1347,7 @@
                 if (friesOrderList.length === 0) {
                     box.innerHTML = `
                         <div class="supplier-box" style="text-align:center; padding:20px;">
-                            <h3>👍 Stock is sufficient for Fries & Wedges for next 2 days. No order needed today.</h3>
+                            <h3>👍 Stock is sufficient for Fries & Wedges. No order needed today.</h3>
                             <button class="btn-primary-action" onclick="markSectionComplete('fries')">Go to Home Page</button>
                         </div>
                     `;
@@ -1341,9 +1359,9 @@
                         <div class="supplier-box">
                             <div class="supplier-title">🍟 Send Order to "TSG hyfun fries"</div>
                             <div class="instruction-text">
-                                👉 <strong>Fries:</strong> Available (${totalFriesAvailable.toFixed(1)} pkts) vs 2-Day Min (${friesTwoDayMin}) -> Order: <strong>${friesOrderQty} pkts</strong> (MOQ 1 Box = 5 pkts).<br>
-                                👉 <strong>Wedges:</strong> Available (${totalWedgesAvailable.toFixed(1)} pkts) vs 2-Day Min (${wedgesTwoDayMin}) -> Order: <strong>${wedgesOrderQty} pkts</strong> (MOQ 2 pkts).<br>
-                                💾 <em>Note:</em> Orders saved to memory for tomorrow's pending delivery check.
+                                👉 <strong>Fries:</strong> Available (${totalFriesPkts.toFixed(1)} pkts) -> Order: <strong>${friesOrderQty} pkts</strong>.<br>
+                                👉 <strong>Wedges:</strong> Available (${totalWedgesPkts.toFixed(1)} pkts) -> Order: <strong>${wedgesOrderQty} pkts</strong>.<br>
+                                <em>Note:</em> Pending delivery blocks removed. Thursday advance lookahead applied if applicable.
                             </div>
                             <div class="order-list">${friesOrderText}</div>
                             <a href="${friesWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('fries')">Send Fries Order via WhatsApp</a>
@@ -1355,9 +1373,10 @@
             } else if (sectionName === 'prep') {
                 let otStock = parseFloat(document.getElementById('stock-onion-tangles').value);
                 let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks').value);
+                let hummusStock = parseFloat(document.getElementById('stock-hummus').value);
 
-                if (isNaN(otStock) || isNaN(msStock)) {
-                    alert("⚠️ Sabhi in-house items ka stock enter karna zaroori hai!");
+                if (isNaN(otStock) || isNaN(msStock) || isNaN(hummusStock)) {
+                    alert("⚠️ Sabhi in-house items (Onion Tangles, Mozzarella Sticks, Hummus) ka stock enter karna zaroori hai!");
                     return;
                 }
 
@@ -1365,9 +1384,12 @@
                 let otMax = isWeekendMode ? 14 : 10;
                 let msMin = isWeekendMode ? 10 : 8;
                 let msMax = isWeekendMode ? 20 : 15;
+                let hummusMin = 5;
+                let hummusMax = 15;
 
                 let otNeeded = (otStock <= otMin) ? (otMax - otStock) : 0;
                 let msNeeded = (msStock <= msMin) ? (msMax - msStock) : 0;
+                let hummusNeeded = (hummusStock <= hummusMin) ? (hummusMax - hummusStock) : 0;
 
                 let prepInstructions = [];
                 if (otNeeded > 0) {
@@ -1376,27 +1398,34 @@
                 if (msNeeded > 0) {
                     prepInstructions.push(`• Mozzarella Sticks: Stock low hai (${msStock} portions). Kripya naye *${Math.ceil(msNeeded)} portions* Mozzarella Sticks bana dein.`);
                 }
+                if (hummusStock <= 5) {
+                    prepInstructions.push(`⚠️ Hummus kam ho raha hai (Stock: ${hummusStock} packets). Hummus kam ho raha hai 200 gram chana bhiga do aur pressure cook kar do.`);
+                } else if (hummusNeeded > 0) {
+                    prepInstructions.push(`• Hummus: Stock low hai (${hummusStock} pkts). Kripya naye *${Math.ceil(hummusNeeded)} packets* Hummus prepare kar dein.`);
+                }
 
                 if (msStock <= 10) {
                     prepInstructions.push(`⚠️ *Mozzarella Pre-Prep:* Mozzarella block ko freezer se nikaal kar fridge mein rakh dein taaki woh soft ho jaye aur cut karne mein asani ho.`);
                 }
 
+                let workDateStr = getFormattedFullDeliveryDateStr();
+
                 if (prepInstructions.length === 0) {
                     box.innerHTML = `
                         <div class="supplier-box" style="text-align:center; padding:20px;">
-                            <h3>👍 Onion Tangles aur Mozzarella Sticks ka stock sufficient hai. Koi prep ki zaroorat nahi hai.</h3>
+                            <h3>👍 Onion Tangles, Mozzarella Sticks aur Hummus ka stock sufficient hai. Koi prep ki zaroorat nahi hai.</h3>
                             <button class="btn-primary-action" onclick="markSectionComplete('prep')">Done & Go to Home Page ✅</button>
                         </div>
                     `;
                 } else {
-                    let prepText = `📋 *IN-HOUSE PREP INSTRUCTIONS*\nDate: ${new Date().toLocaleDateString()}\n\n` + prepInstructions.join('\n\n');
+                    let prepText = `📋 *IN-HOUSE PREP INSTRUCTIONS*\nDate: ${workDateStr}\n\n` + prepInstructions.join('\n\n');
                     let prepWhatsappUrl = `https://wa.me/?text=${encodeURIComponent(prepText)}`;
 
                     box.innerHTML = `
                         <div class="supplier-box" style="border-color: #ff9800;">
                             <div class="supplier-title" style="color: #ffb74d;">🔪 Send Instructions to "TSG-coordination"</div>
                             <div class="instruction-text" style="border-left-color: #ffb74d; color: #ffe0b2;">
-                                👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG-coordination</strong> group mein send karein taaki staff prep aur pre-prep (mozzarella defrost) shuru kar sake.
+                                👉 <strong>Kaise bhejein:</strong> WhatsApp par <strong>TSG-coordination</strong> group mein send karein taaki staff prep aur hummus (chana soaking) shuru kar sake.
                             </div>
                             <div class="order-list">${prepText}</div>
                             <a href="${prepWhatsappUrl}" class="btn-whatsapp" style="background-color: #ff9800;" onclick="markSectionComplete('prep')">Send Prep to TSG-coordination</a>
@@ -1427,7 +1456,8 @@
                     }
                 });
 
-                let saucesReportText = `🏺 *SAUCES STATUS & INVENTORY REPORT*\nDate: ${new Date().toLocaleDateString()}\n\n` + 
+                let workDateStr = getFormattedFullDeliveryDateStr();
+                let saucesReportText = `🏺 *SAUCES STATUS & INVENTORY REPORT*\nDate: ${workDateStr}\n\n` + 
                     `⚠️ *Zaroori Soochana:* Agar Egg mayo aur Garlic mayo ko sauce bottle mein bhara jata hai, toh yeh dhyan rahe ki aapke paas back up mein kam se kam 1 kg extra zaroor hona chahiye.\n\n` + 
                     saucesStatusLines.join('\n');
                 
@@ -1470,11 +1500,11 @@
                 const max = isWeekendMode ? item.weMax : item.wdMax;
 
                 if (item.hasStore) {
-                    let rawVal = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                    let rawVal = parseFloat(document.getElementById(`stock-${item.id}`)?.value) || 0;
                     closingStockVal = rawVal;
                     storeOrder = (closingStockVal <= min) ? (max - closingStockVal) : 0;
                 }
-                let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`).value) || 0) : 0;
+                let ckVal = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`)?.value) || 0) : 0;
                 let totalNeeded = storeOrder + ckVal;
                 let finalQty = item.isPcs ? Math.ceil(totalNeeded) : roundToNearestHalf(totalNeeded);
                 let stockStr = item.hasStore ? (item.isPcs ? closingStockVal + " pcs" : closingStockVal + " kg") : "N/A";
@@ -1484,59 +1514,49 @@
             });
 
             masterInventory.filter(i => i.cat.startsWith("Chicken") || i.cat === "Eggs").forEach(item => {
-                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
+                let stock = parseFloat(document.getElementById(`stock-${item.id}`)?.value) || 0;
+                let ckStock = item.hasCK ? (parseFloat(document.getElementById(`ck-${item.id}`)?.value) || 0) : 0;
+                let ckStr = ckStock > 0 ? ` | CK Bulk: ${ckStock} kg` : '';
+                masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}${ckStr}`);
             });
 
-            let frozenBuff = parseFloat(document.getElementById(`stock-b1`).value) || 0;
-            let freshBuff = parseFloat(document.getElementById(`stock-b2`).value) || 0;
+            let frozenBuff = parseFloat(document.getElementById(`stock-b1`)?.value) || 0;
+            let freshBuff = parseFloat(document.getElementById(`stock-b2`)?.value) || 0;
             masterAuditLines.push(`• *Frozen Buff Patty* | Stock: ${frozenBuff} pcs`);
             masterAuditLines.push(`• *Fresh Buff Patty* | Stock: ${freshBuff} pcs`);
 
-            let sesameStock = parseFloat(document.getElementById('stock-sesame-bun').value) || 0;
-            let sesamePending = parseFloat(document.getElementById('pending-delivery-sesame').value) || 0;
-            let sesameTotal = sesameStock + sesamePending;
-            let twoDayMin = getSesameMinForDay(deliveryDay) + getSesameMinForDay((deliveryDay + 1) % 7);
-            let sesameShortfall = twoDayMin - sesameTotal;
-            let sesameAuditOrder = sesameShortfall > 0 ? Math.max(sesameShortfall, 40) : 0;
-            masterAuditLines.push(`• *Regular Sesame Bun* | Stock: ${sesameStock} pcs | Pending: ${sesamePending} pcs | Order: *${sesameAuditOrder > 0 ? sesameAuditOrder + ' pcs' : 'Sufficient'}*`);
+            let sesameLok = parseFloat(document.getElementById('stock-sesame-lok')?.value) || 0;
+            let multiLok = parseFloat(document.getElementById('stock-multi-lok')?.value) || 0;
+            let sesameKhar = parseFloat(document.getElementById('stock-sesame-khar')?.value) || 0;
+            let multiKhar = parseFloat(document.getElementById('stock-multi-khar')?.value) || 0;
 
-            let multiStock = parseFloat(document.getElementById('stock-multi-bun').value) || 0;
-            let multiPending = parseFloat(document.getElementById('pending-delivery-multi').value) || 0;
-            let multiTotal = multiStock + multiPending;
-            let multiNeeded = (multiTotal <= 6) ? (30 - multiTotal) : 0;
-            let multiAuditOrder = multiNeeded > 0 ? Math.max(multiNeeded, 30) : 0;
-            masterAuditLines.push(`• *Multigrain Bun* | Stock: ${multiStock} pcs | Pending: ${multiPending} pcs | Order: *${multiAuditOrder > 0 ? multiAuditOrder + ' pcs' : 'Sufficient'}*`);
+            masterAuditLines.push(`• *Regular Sesame Bun (Lokhandwala)* | Stock: ${sesameLok} pcs`);
+            masterAuditLines.push(`• *Multigrain Bun (Lokhandwala)* | Stock: ${multiLok} pcs`);
+            masterAuditLines.push(`• *Regular Sesame Bun (Khar)* | Stock: ${sesameKhar} pcs`);
+            masterAuditLines.push(`• *Multigrain Bun (Khar)* | Stock: ${multiKhar} pcs`);
 
-            let friesPkt = parseFloat(document.getElementById('stock-fries-pkt').value) || 0;
-            let friesKg = parseFloat(document.getElementById('stock-fries-kg').value) || 0;
-            let friesPending = parseFloat(document.getElementById('pending-delivery-fries').value) || 0;
-            let friesTotal = (friesPkt * 2.5 + friesKg) / 2.5 + friesPending;
-            let friesTwoDayMin = getFriesMinForDay(deliveryDay) + getFriesMinForDay((deliveryDay + 1) % 7);
-            let friesShort = friesTwoDayMin - friesTotal;
-            let friesAuditOrder = friesShort > 0 ? Math.max(Math.ceil(friesShort / 5) * 5, 5) : 0;
-            masterAuditLines.push(`• *Fries* | Stock: ${friesPkt} pkt ${friesKg}kg | Pending: ${friesPending} pkt | Order: *${friesAuditOrder > 0 ? friesAuditOrder + ' pkts' : 'Sufficient'}*`);
+            let friesPkt = parseFloat(document.getElementById('stock-fries-pkt')?.value) || 0;
+            let friesKg = parseFloat(document.getElementById('stock-fries-kg')?.value) || 0;
+            masterAuditLines.push(`• *Fries* | Stock: ${friesPkt} pkt ${friesKg}kg`);
 
-            let wedgesPkt = parseFloat(document.getElementById('stock-wedges-pkt').value) || 0;
-            let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg').value) || 0;
-            let wedgesPending = parseFloat(document.getElementById('pending-delivery-wedges').value) || 0;
-            let wedgesTotal = (wedgesPkt * 2.5 + wedgesKg) / 2.5 + wedgesPending;
-            let wedgesTwoDayMin = getWedgesMinForDay(deliveryDay) + getWedgesMinForDay((deliveryDay + 1) % 7);
-            let wedgesShort = wedgesTwoDayMin - wedgesTotal;
-            let wedgesAuditOrder = wedgesShort > 0 ? Math.max(Math.ceil(wedgesShort / 2) * 2, 2) : 0;
-            masterAuditLines.push(`• *Wedges* | Stock: ${wedgesPkt} pkt ${wedgesKg}kg | Pending: ${wedgesPending} pkt | Order: *${wedgesAuditOrder > 0 ? wedgesAuditOrder + ' pkts' : 'Sufficient'}*`);
+            let wedgesPkt = parseFloat(document.getElementById('stock-wedges-pkt')?.value) || 0;
+            let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg')?.value) || 0;
+            masterAuditLines.push(`• *Wedges* | Stock: ${wedgesPkt} pkt ${wedgesKg}kg`);
 
-            let otStock = parseFloat(document.getElementById('stock-onion-tangles').value) || 0;
-            let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks').value) || 0;
+            let otStock = parseFloat(document.getElementById('stock-onion-tangles')?.value) || 0;
+            let msStock = parseFloat(document.getElementById('stock-mozzarella-sticks')?.value) || 0;
+            let hummusStock = parseFloat(document.getElementById('stock-hummus')?.value) || 0;
             masterAuditLines.push(`• *Onion Tangles* | Stock: ${otStock} portions`);
             masterAuditLines.push(`• *Mozzarella Sticks* | Stock: ${msStock} portions ${msStock <= 10 ? '(⚠️ Block Defrost Triggered)' : ''}`);
+            masterAuditLines.push(`• *Hummus* | Stock: ${hummusStock} pkts ${hummusStock <= 5 ? '(⚠️ Chana Soak Triggered)' : ''}`);
 
             masterInventory.filter(i => i.cat === "Sauces").forEach(item => {
-                let stock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
+                let stock = parseFloat(document.getElementById(`stock-${item.id}`)?.value) || 0;
                 masterAuditLines.push(`• *${item.name}* | Stock: ${stock} ${item.unit}`);
             });
 
-            let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${new Date().toLocaleDateString()} (${isWeekendMode ? 'Weekend Delivery' : 'Weekday Delivery'})\n\n`;
+            let workDateStr = getFormattedFullDeliveryDateStr();
+            let masterLogText = `📋 *MASTER MANAGER INVENTORY LOG*\nDate: ${workDateStr} (${isWeekendMode ? 'Weekend Delivery' : 'Weekday Delivery'})\n\n`;
             masterLogText += masterAuditLines.join('\n');
             masterLogText += `\n\n_All inventory closing stock & orders verified by Manager._`;
             const masterLogUrl = `https://wa.me/?text=${encodeURIComponent(masterLogText)}`;
