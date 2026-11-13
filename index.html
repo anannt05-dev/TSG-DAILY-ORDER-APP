@@ -628,7 +628,7 @@
             },
             { 
                 id: 'c5', name: "Chicken Patty", cat: "Chicken - Marinated", unit: "PCS", 
-                wdMin: 15, wdMax: 41, weMin: 25, weMax: 51, 
+                wdMin: 15, wdMax: 41, weMin: 30, weMax: 40, 
                 isMarinated: true, rawKey: 'raw_kheema', isBatchPatty: true, batchPcs: 26, batchKheemaKg: 2 
             },
 
@@ -1081,92 +1081,85 @@
                 let chickenOrderItems = [];
                 let marinateInstructions = [];
 
-                // 1. STRICTLY CALCULATE TOTAL PATTY BATCHES NEEDED FIRST (Independent of raw kheema order status)
-                let totalPattyBatchesNeeded = 0;
+                // --- CHICKEN PATTY STEP-BY-STEP REVISED LOGIC ---
+                // Step 1: Target ranges definition
+                const minPatty = isWeekendMode ? 30 : 15;
+                const maxPatty = isWeekendMode ? 40 : 41;
                 let marinatedPattyStock = parseFloat(document.getElementById(`stock-c5`).value) || 0;
-                const minPatty = isWeekendMode ? 25 : 15;
-                const maxPatty = isWeekendMode ? 51 : 41;
-                let rawKheemaAvailForCalc = rawStock['raw_kheema'] || 0;
-                let equivalentPattyFromRaw = (rawKheemaAvailForCalc / 2) * 26;
-                let totalCombinedPatty = marinatedPattyStock + equivalentPattyFromRaw;
 
-                if (marinatedPattyStock <= minPatty || totalCombinedPatty < maxPatty) {
-                    let deficitPcs = maxPatty - totalCombinedPatty;
+                let totalPattyBatchesNeeded = 0;
+                // Step 2 & 3: Check if stock is at or below minimum, calculate multiple batches needed to reach max target
+                if (marinatedPattyStock <= minPatty) {
+                    let deficitPcs = maxPatty - marinatedPattyStock;
                     if (deficitPcs > 0) {
+                        // Locked batch size is 26 pcs
                         totalPattyBatchesNeeded = Math.ceil(deficitPcs / 26);
                     }
                 }
 
-                masterInventory.filter(i => i.isMarinated).forEach(item => {
+                // Step 4: Per batch requirement (2kg breast kheema & 250g fat kheema)
+                let kheemaPerBatch = 2; // kg
+                let fatPerBatch = 0.25; // kg (250g)
+                let totalKheemaNeededForStore = totalPattyBatchesNeeded * kheemaPerBatch;
+                let totalFatNeededForStore = totalPattyBatchesNeeded * fatPerBatch;
+
+                // Step 5: Check against available stock & generate orders
+                let rawKheemaAvail = rawStock['raw_kheema'] || 0;
+                if (totalPattyBatchesNeeded > 0) {
+                    if (rawKheemaAvail >= totalKheemaNeededForStore) {
+                        rawStock['raw_kheema'] -= totalKheemaNeededForStore;
+                        marinateInstructions.push(`• Chicken Patty: Stock low hai (${marinatedPattyStock} pcs). Fridge mein raw breast kheema *${totalKheemaNeededForStore} kg* aur fat rakha hai, marinate karke *${totalPattyBatchesNeeded * 26} pcs* patty bana dena.`);
+                    } else {
+                        let shortfallKheema = totalKheemaNeededForStore - rawKheemaAvail;
+                        rawStock['raw_kheema'] = 0;
+                        if (shortfallKheema > 0) {
+                            chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: shortfallKheema, unit: "kg" });
+                        }
+                        marinateInstructions.push(`• Chicken Patty: Stock low hai (${marinatedPattyStock} pcs) aur raw breast kheema order kar diya gaya hai. Kal milte hi marinate karke patty bana dena.`);
+                    }
+                }
+
+                // Process other marinated items (Wings, Thigh, Supreme, Crunchies)
+                masterInventory.filter(i => i.isMarinated && !i.isBatchPatty).forEach(item => {
                     const minMarinated = isWeekendMode ? item.weMin : item.wdMin;
                     const totalRequirement = isWeekendMode ? item.weMax : item.wdMax;
                     
                     let marinatedStock = parseFloat(document.getElementById(`stock-${item.id}`).value) || 0;
-                    
-                    if (item.isBatchPatty) {
-                        let batchSize = item.batchPcs;
-                        let kheemaPerBatch = item.batchKheemaKg;
-                        let rawKheemaAvail = rawStock['raw_kheema'] || 0;
+                    let rawKey = item.rawKey;
+                    let yieldRate = item.yieldPerKg;
+                    let rawAvailable = rawStock[rawKey] || 0;
+                    let unitEquivalentFromRaw = rawAvailable * yieldRate;
+                    let totalCombinedStock = marinatedStock + unitEquivalentFromRaw;
 
-                        if (marinatedStock <= minMarinated || totalCombinedPatty < totalRequirement) {
-                            let deficitPcs = totalRequirement - totalCombinedPatty;
-                            if (deficitPcs > 0) {
-                                let kheemaNeeded = totalPattyBatchesNeeded * kheemaPerBatch;
+                    if (marinatedStock <= minMarinated || totalCombinedStock < totalRequirement) {
+                        let deficitUnits = totalRequirement - totalCombinedStock;
+                        if (deficitUnits > 0) {
+                            let rawKgNeeded = deficitUnits / yieldRate;
+                            let rawItemObj = masterInventory.find(i => i.id === rawKey);
 
-                                if (rawKheemaAvail >= kheemaNeeded) {
-                                    rawStock['raw_kheema'] -= kheemaNeeded;
-                                    marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw breast kheema *${kheemaNeeded} kg* aur fat rakha hai, marinate karke *${totalPattyBatchesNeeded * batchSize} pcs* patty bana dena.`);
-                                } else {
-                                    let shortfallKheema = kheemaNeeded - rawKheemaAvail;
-                                    rawStock['raw_kheema'] = 0;
-                                    if (shortfallKheema > 0) {
-                                        chickenOrderItems.push({ name: "CHICKEN BREAST KHEEMA", qty: shortfallKheema, unit: "kg" });
-                                    }
-                                    marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs) aur raw stock order kar diya gaya hai. Kal milte hi marinate karke patty bana dena.`);
-                                }
+                            if (rawAvailable >= rawKgNeeded) {
+                                rawStock[rawKey] -= rawKgNeeded;
+                                let usedKgRounded = Math.ceil(rawKgNeeded);
+                                marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port). Fridge mein Raw ${rawItemObj.name} *${usedKgRounded} kg* rakha hai, marinate kar dena.`);
                             } else {
-                                marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw stock rakha hai, marinate kar dena.`);
-                            }
-                        }
-                    } else {
-                        let rawKey = item.rawKey;
-                        let yieldRate = item.yieldPerKg;
-                        let rawAvailable = rawStock[rawKey] || 0;
-                        let unitEquivalentFromRaw = rawAvailable * yieldRate;
-                        let totalCombinedStock = marinatedStock + unitEquivalentFromRaw;
-
-                        if (marinatedStock <= minMarinated || totalCombinedStock < totalRequirement) {
-                            let deficitUnits = totalRequirement - totalCombinedStock;
-                            if (deficitUnits > 0) {
-                                let rawKgNeeded = deficitUnits / yieldRate;
-                                let rawItemObj = masterInventory.find(i => i.id === rawKey);
-
-                                if (rawAvailable >= rawKgNeeded) {
-                                    rawStock[rawKey] -= rawKgNeeded;
-                                    let usedKgRounded = Math.ceil(rawKgNeeded);
-                                    marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port). Fridge mein Raw ${rawItemObj.name} *${usedKgRounded} kg* rakha hai, marinate kar dena.`);
-                                } else {
-                                    let shortfallKg = rawKgNeeded - rawAvailable;
-                                    rawStock[rawKey] = 0;
-                                    let orderedKg = Math.ceil(shortfallKg);
-                                    if (orderedKg > 0) {
-                                        chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
-                                    }
-                                    marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port) aur raw stock order kar diya gaya hai. Kal aate hi marinate kar dena.`);
+                                let shortfallKg = rawKgNeeded - rawAvailable;
+                                rawStock[rawKey] = 0;
+                                let orderedKg = Math.ceil(shortfallKg);
+                                if (orderedKg > 0) {
+                                    chickenOrderItems.push({ name: rawItemObj.vendorName, qty: orderedKg, unit: "kg", isThigh: rawItemObj.isThigh });
                                 }
-                            } else {
-                                marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port). Fridge mein raw stock rakha hai, marinate kar dena.`);
+                                marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port) aur raw stock order kar diya gaya hai. Kal aate hi marinate kar dena.`);
                             }
+                        } else {
+                            marinateInstructions.push(`• ${item.name}: Marinated stock kam hai (${marinatedStock} pcs/port). Fridge mein raw stock rakha hai, marinate kar dena.`);
                         }
                     }
                 });
 
-                // INDEPENDENT FAT KHEEMA CALCULATION BASED ON `totalPattyBatchesNeeded`
+                // Fat Kheema calculation based on store patty batches and CK bulk requirement
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 let fatCkReq = parseFloat(document.getElementById(`ck-raw_fat`).value) || 0;
-
-                let fatNeededForStore = totalPattyBatchesNeeded * 0.25;
-                let fatShortfallForStore = Math.max(0, fatNeededForStore - fatStock);
+                let fatShortfallForStore = Math.max(0, totalFatNeededForStore - fatStock);
                 let totalFatToOrder = fatShortfallForStore + fatCkReq;
 
                 if (totalFatToOrder > 0) {
@@ -1290,13 +1283,11 @@
                 let lokTwoDayMin = minToday + minTomorrow;
                 let kharTwoDayMin = lokTwoDayMin - 30;
 
-                // Lokhandwala calculations
                 let lokSesameShort = lokTwoDayMin - totalSesameLokAvailable;
                 let lokSesameOrder = lokSesameShort > 0 ? Math.max(lokSesameShort, 40) : 0;
                 let lokMultiNeeded = (totalMultiLokAvailable <= 6) ? (30 - totalMultiLokAvailable) : 0;
                 let lokMultiOrder = lokMultiNeeded > 0 ? Math.max(lokMultiNeeded, 30) : 0;
 
-                // Khar calculations
                 let kharSesameShort = kharTwoDayMin - totalSesameKharAvailable;
                 let kharSesameOrder = kharSesameShort > 0 ? Math.max(kharSesameShort, 40) : 0;
                 let kharMultiNeeded = (totalMultiKharAvailable <= 6) ? (30 - totalMultiKharAvailable) : 0;
@@ -1391,7 +1382,6 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                             <div class="instruction-text">
                                 👉 <strong>Fries:</strong> Available (${totalFriesPkts.toFixed(1)} pkts) -> Order: <strong>${friesOrderQty} pkts</strong>.<br>
                                 👉 <strong>Wedges:</strong> Available (${totalWedgesPkts.toFixed(1)} pkts) -> Order: <strong>${wedgesOrderQty} pkts</strong>.<br>
-                                <em>Note:</em> Pending delivery blocks removed. Thursday advance lookahead applied if applicable.
                             </div>
                             <div class="order-list">${friesOrderText}</div>
                             <a href="${friesWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('fries')">Send Fries Order via WhatsApp</a>
@@ -1607,7 +1597,7 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
             `;
 
             document.getElementById('home-dashboard').style.display = 'none';
-            document.querySelectorAll('.category-type').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
             resultsContainer.style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
