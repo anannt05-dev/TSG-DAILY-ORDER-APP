@@ -1150,9 +1150,25 @@
                     }
                 });
 
-                // Independent Fat Kheema Calculation (250g per patty batch + CK bulk requirement)
+                // FIXED FAT CALCULATION: Total batches needed for patty (regardless of whether breast kheema was ordered or taken from fridge stock)
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 let fatCkReq = parseFloat(document.getElementById(`ck-raw_fat`).value) || 0;
+
+                // If patty stock is low, we always need 250g (0.25 kg) fat per batch needed
+                let marinatedPattyStock = parseFloat(document.getElementById(`stock-c5`).value) || 0;
+                const minPatty = isWeekendMode ? 25 : 15;
+                const maxPatty = isWeekendMode ? 51 : 41;
+                let rawKheemaAvailForFatCheck = parseFloat(document.getElementById(`stock-raw_kheema`).value) || 0;
+                let equivalentPattyFromRawFatCheck = (rawKheemaAvailForFatCheck / 2) * 26;
+                let totalCombinedPatty = marinatedPattyStock + equivalentPattyFromRawFatCheck;
+
+                if (marinatedPattyStock <= minPatty || totalCombinedPatty < maxPatty) {
+                    let deficitPcsFat = maxPatty - totalCombinedPatty;
+                    if (deficitPcsFat > 0) {
+                        let totalBatches = Math.ceil(deficitPcsFat / 26);
+                        totalPattyBatchesNeeded = Math.max(totalPattyBatchesNeeded, totalBatches);
+                    }
+                }
 
                 let fatNeededForStore = totalPattyBatchesNeeded * 0.25;
                 let fatShortfallForStore = Math.max(0, fatNeededForStore - fatStock);
