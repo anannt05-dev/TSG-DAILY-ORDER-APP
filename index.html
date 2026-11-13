@@ -1080,7 +1080,22 @@
 
                 let chickenOrderItems = [];
                 let marinateInstructions = [];
+
+                // 1. STRICTLY CALCULATE TOTAL PATTY BATCHES NEEDED FIRST (Independent of raw kheema order status)
                 let totalPattyBatchesNeeded = 0;
+                let marinatedPattyStock = parseFloat(document.getElementById(`stock-c5`).value) || 0;
+                const minPatty = isWeekendMode ? 25 : 15;
+                const maxPatty = isWeekendMode ? 51 : 41;
+                let rawKheemaAvailForCalc = rawStock['raw_kheema'] || 0;
+                let equivalentPattyFromRaw = (rawKheemaAvailForCalc / 2) * 26;
+                let totalCombinedPatty = marinatedPattyStock + equivalentPattyFromRaw;
+
+                if (marinatedPattyStock <= minPatty || totalCombinedPatty < maxPatty) {
+                    let deficitPcs = maxPatty - totalCombinedPatty;
+                    if (deficitPcs > 0) {
+                        totalPattyBatchesNeeded = Math.ceil(deficitPcs / 26);
+                    }
+                }
 
                 masterInventory.filter(i => i.isMarinated).forEach(item => {
                     const minMarinated = isWeekendMode ? item.weMin : item.wdMin;
@@ -1092,19 +1107,15 @@
                         let batchSize = item.batchPcs;
                         let kheemaPerBatch = item.batchKheemaKg;
                         let rawKheemaAvail = rawStock['raw_kheema'] || 0;
-                        let equivalentPattyFromRaw = (rawKheemaAvail / kheemaPerBatch) * batchSize;
-                        let totalCombinedStock = marinatedStock + equivalentPattyFromRaw;
 
-                        if (marinatedStock <= minMarinated || totalCombinedStock < totalRequirement) {
-                            let deficitPcs = totalRequirement - totalCombinedStock;
+                        if (marinatedStock <= minMarinated || totalCombinedPatty < totalRequirement) {
+                            let deficitPcs = totalRequirement - totalCombinedPatty;
                             if (deficitPcs > 0) {
-                                let batchesNeeded = Math.ceil(deficitPcs / batchSize);
-                                totalPattyBatchesNeeded += batchesNeeded;
-                                let kheemaNeeded = batchesNeeded * kheemaPerBatch;
+                                let kheemaNeeded = totalPattyBatchesNeeded * kheemaPerBatch;
 
                                 if (rawKheemaAvail >= kheemaNeeded) {
                                     rawStock['raw_kheema'] -= kheemaNeeded;
-                                    marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw breast kheema *${kheemaNeeded} kg* aur fat rakha hai, marinate karke *${batchesNeeded * batchSize} pcs* patty bana dena.`);
+                                    marinateInstructions.push(`• Chicken Patty: Marinated stock kam hai (${marinatedStock} pcs). Fridge mein raw breast kheema *${kheemaNeeded} kg* aur fat rakha hai, marinate karke *${totalPattyBatchesNeeded * batchSize} pcs* patty bana dena.`);
                                 } else {
                                     let shortfallKheema = kheemaNeeded - rawKheemaAvail;
                                     rawStock['raw_kheema'] = 0;
@@ -1150,25 +1161,9 @@
                     }
                 });
 
-                // FIXED FAT CALCULATION: Total batches needed for patty (regardless of whether breast kheema was ordered or taken from fridge stock)
+                // INDEPENDENT FAT KHEEMA CALCULATION BASED ON `totalPattyBatchesNeeded`
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 let fatCkReq = parseFloat(document.getElementById(`ck-raw_fat`).value) || 0;
-
-                // If patty stock is low, we always need 250g (0.25 kg) fat per batch needed
-                let marinatedPattyStock = parseFloat(document.getElementById(`stock-c5`).value) || 0;
-                const minPatty = isWeekendMode ? 25 : 15;
-                const maxPatty = isWeekendMode ? 51 : 41;
-                let rawKheemaAvailForFatCheck = parseFloat(document.getElementById(`stock-raw_kheema`).value) || 0;
-                let equivalentPattyFromRawFatCheck = (rawKheemaAvailForFatCheck / 2) * 26;
-                let totalCombinedPatty = marinatedPattyStock + equivalentPattyFromRawFatCheck;
-
-                if (marinatedPattyStock <= minPatty || totalCombinedPatty < maxPatty) {
-                    let deficitPcsFat = maxPatty - totalCombinedPatty;
-                    if (deficitPcsFat > 0) {
-                        let totalBatches = Math.ceil(deficitPcsFat / 26);
-                        totalPattyBatchesNeeded = Math.max(totalPattyBatchesNeeded, totalBatches);
-                    }
-                }
 
                 let fatNeededForStore = totalPattyBatchesNeeded * 0.25;
                 let fatShortfallForStore = Math.max(0, fatNeededForStore - fatStock);
@@ -1612,7 +1607,7 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
             `;
 
             document.getElementById('home-dashboard').style.display = 'none';
-            document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.category-type').forEach(el => el.style.display = 'none');
             resultsContainer.style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
