@@ -1188,13 +1188,14 @@
 
                 let chickenItemsList = [];
                 for (const [name, data] of Object.entries(consolidatedChicken)) {
+                    let displayName = name === "WINGS" ? "Wings cut in two pieces. keep wingtip full" : name;
                     if (data.isFatItem) {
                         let fatDisplay = data.qty < 1 ? `${Math.round(data.qty * 1000)} gm` : `${data.qty.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')} kg`;
-                        chickenItemsList.push(`• ${name}: *${fatDisplay}*`);
+                        chickenItemsList.push(`• ${displayName}: *${fatDisplay}*`);
                     } else if (data.isThigh) {
-                        chickenItemsList.push(`• ${name}: *${data.qty} kg* (${data.qty * 10} pcs of 100g proper weight proper size: ${data.qty} kg = ${data.qty * 10} pcs)`);
+                        chickenItemsList.push(`• ${displayName}: *${data.qty} kg* (${data.qty * 10} pcs of 100g proper weight proper size: ${data.qty} kg = ${data.qty * 10} pcs)`);
                     } else {
-                        chickenItemsList.push(`• ${name}: *${data.qty} kg*`);
+                        chickenItemsList.push(`• ${displayName}: *${data.qty} kg*`);
                     }
                 }
 
@@ -1529,6 +1530,7 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
 
         function generateMasterAuditLog() {
             let resultsContainer = document.getElementById('section-result-box');
+            let resultsTab = document.getElementById('results-tab');
             resultsContainer.innerHTML = '';
 
             let masterAuditLines = [];
@@ -1618,6 +1620,7 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
 
             document.getElementById('home-dashboard').style.display = 'none';
             document.querySelectorAll('.category-view').forEach(el => el.style.display = 'none');
+            if (resultsTab) resultsTab.style.display = 'block';
             resultsContainer.style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
