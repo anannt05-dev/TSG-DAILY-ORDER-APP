@@ -521,16 +521,39 @@
     </div>
 
     <script>
-        // --- 10 AM RESET & 1-DAY ADVANCE OPERATIONAL DATE LOGIC ---
-        function getOperationalDateKey() {
-            let now = new Date();
-            if (now.getHours() < 10) {
-                now.setDate(now.getDate() - 1);
+        // --- SINGLE SNAPSHOT FOR OPERATIONAL DAY (10 AM TO 6 AM NEXT DAY) ---
+        const snapshotNow = new Date();
+
+        function computeOperationalDate(baseDate) {
+            const opDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+            // Before 10:00 AM belongs to the previous calendar day's operational window (10 AM - 6 AM next day)
+            if (baseDate.getHours() < 10) {
+                opDate.setDate(opDate.getDate() - 1);
             }
-            return now.toDateString();
+            return opDate;
         }
 
-        const activeDateKey = getOperationalDateKey();
+        function getOperationalDateKey(baseDate = snapshotNow) {
+            return computeOperationalDate(baseDate).toDateString();
+        }
+
+        // Dedicated Buns operational context (10 AM to 6 AM cutoff)
+        function getBunsOperationalContext(baseDate = new Date()) {
+            const bunsOpDate = computeOperationalDate(baseDate);
+            const bunsDeliveryDate = new Date(bunsOpDate.getFullYear(), bunsOpDate.getMonth(), bunsOpDate.getDate() + 1);
+            const d = bunsDeliveryDate.getDate().toString().padStart(2, '0');
+            const m = (bunsDeliveryDate.getMonth() + 1).toString().padStart(2, '0');
+            const y = bunsDeliveryDate.getFullYear().toString().slice(-2);
+
+            return {
+                bunsOpDate,
+                bunsDeliveryDate,
+                bunsDeliveryDay: bunsDeliveryDate.getDay(),
+                formattedDeliveryDateStr: `${d}-${m}-${y}`
+            };
+        }
+
+        const activeDateKey = getOperationalDateKey(snapshotNow);
         let savedDate = localStorage.getItem('tsg_op_date');
 
         if (savedDate !== activeDateKey) {
@@ -544,12 +567,8 @@
             localStorage.setItem('status_sauces', 'false');
         }
 
-        let opDateObj = new Date();
-        if (opDateObj.getHours() < 10) {
-            opDateObj.setDate(opDateObj.getDate() - 1);
-        }
-        const deliveryDate = new Date(opDateObj);
-        deliveryDate.setDate(deliveryDate.getDate() + 1);
+        const opDateObj = computeOperationalDate(snapshotNow);
+        const deliveryDate = new Date(opDateObj.getFullYear(), opDateObj.getMonth(), opDateObj.getDate() + 1);
 
         const deliveryDay = deliveryDate.getDay();
         const isWeekendMode = (deliveryDay === 5 || deliveryDay === 6 || deliveryDay === 0);
@@ -561,10 +580,7 @@
             "🟢 Weekday Delivery Mode Active (Standard Targets)";
 
         function getFormattedDeliveryDateStr() {
-            let d = deliveryDate.getDate().toString().padStart(2, '0');
-            let m = (deliveryDate.getMonth() + 1).toString().padStart(2, '0');
-            let y = deliveryDate.getFullYear().toString().slice(-2);
-            return `${d}-${m}-${y}`;
+            return getBunsOperationalContext(new Date()).formattedDeliveryDateStr;
         }
 
         function getFormattedFullDeliveryDateStr() {
@@ -744,8 +760,9 @@
 
             // Buns Orders (Lokhandwala & Khar West with Pending Delivery)
             const bunsCont = document.getElementById('buns-inputs-list');
-            let minToday = getSesameMinForDay(deliveryDay);
-            let minTomorrow = getSesameMinForDay((deliveryDay + 1) % 7);
+            const bunsCtx = getBunsOperationalContext(new Date());
+            let minToday = getSesameMinForDay(bunsCtx.bunsDeliveryDay);
+            let minTomorrow = getSesameMinForDay((bunsCtx.bunsDeliveryDay + 1) % 7);
 
             bunsCont.innerHTML = `
                 <div class="item-card" style="border-left: 4px solid var(--primary);">
@@ -1082,28 +1099,23 @@
                 let marinateInstructions = [];
 
                 // --- CHICKEN PATTY STEP-BY-STEP REVISED LOGIC ---
-                // Step 1: Target ranges definition
                 const minPatty = isWeekendMode ? 30 : 15;
                 const maxPatty = isWeekendMode ? 40 : 41;
                 let marinatedPattyStock = parseFloat(document.getElementById(`stock-c5`).value) || 0;
 
                 let totalPattyBatchesNeeded = 0;
-                // Step 2 & 3: Check if stock is at or below minimum, calculate multiple batches needed to reach max target
                 if (marinatedPattyStock <= minPatty) {
                     let deficitPcs = maxPatty - marinatedPattyStock;
                     if (deficitPcs > 0) {
-                        // Locked batch size is 26 pcs
                         totalPattyBatchesNeeded = Math.ceil(deficitPcs / 26);
                     }
                 }
 
-                // Step 4: Per batch requirement (2kg breast kheema & 250g fat kheema)
                 let kheemaPerBatch = 2; // kg
                 let fatPerBatch = 0.25; // kg (250g)
                 let totalKheemaNeededForStore = totalPattyBatchesNeeded * kheemaPerBatch;
                 let totalFatNeededForStore = totalPattyBatchesNeeded * fatPerBatch;
 
-                // Step 5: Check against available stock & generate orders
                 let rawKheemaAvail = rawStock['raw_kheema'] || 0;
                 if (totalPattyBatchesNeeded > 0) {
                     if (rawKheemaAvail >= totalKheemaNeededForStore) {
@@ -1119,7 +1131,6 @@
                     }
                 }
 
-                // Process other marinated items (Wings, Thigh, Supreme, Crunchies)
                 masterInventory.filter(i => i.isMarinated && !i.isBatchPatty).forEach(item => {
                     const minMarinated = isWeekendMode ? item.weMin : item.wdMin;
                     const totalRequirement = isWeekendMode ? item.weMax : item.wdMax;
@@ -1156,7 +1167,6 @@
                     }
                 });
 
-                // Fat Kheema calculation based on store patty batches and CK bulk requirement
                 let fatStock = parseFloat(document.getElementById(`stock-raw_fat`).value) || 0;
                 let fatCkReq = parseFloat(document.getElementById(`ck-raw_fat`).value) || 0;
                 let fatShortfallForStore = Math.max(0, totalFatNeededForStore - fatStock);
@@ -1273,13 +1283,16 @@
                     return;
                 }
 
+                const bunsCtx = getBunsOperationalContext(new Date());
+                const bunsDelDay = bunsCtx.bunsDeliveryDay;
+
                 let totalSesameLokAvailable = sesameLok + pendingSesameLok;
                 let totalMultiLokAvailable = multiLok + pendingMultiLok;
                 let totalSesameKharAvailable = sesameKhar + pendingSesameKhar;
                 let totalMultiKharAvailable = multiKhar + pendingMultiKhar;
 
-                let minToday = getSesameMinForDay(deliveryDay);
-                let minTomorrow = getSesameMinForDay((deliveryDay + 1) % 7);
+                let minToday = getSesameMinForDay(bunsDelDay);
+                let minTomorrow = getSesameMinForDay((bunsDelDay + 1) % 7);
                 let lokTwoDayMin = minToday + minTomorrow;
                 let kharTwoDayMin = lokTwoDayMin - 30;
 
@@ -1293,7 +1306,7 @@
                 let kharMultiNeeded = (totalMultiKharAvailable <= 6) ? (30 - totalMultiKharAvailable) : 0;
                 let kharMultiOrder = kharMultiNeeded > 0 ? Math.max(kharMultiNeeded, 30) : 0;
 
-                let deliveryDateStr = getFormattedDeliveryDateStr();
+                let deliveryDateStr = bunsCtx.formattedDeliveryDateStr;
 
                 let bunsOrderText = `TSG Andheri Andheri 75654
 Order for tomorrow
@@ -1313,7 +1326,7 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                     <div class="supplier-box">
                         <div class="supplier-title">🍞 Send Order to Pantree / Buns Supplier</div>
                         <div class="instruction-text">
-                            👉 Exact screenshot format matched for Pantree WhatsApp order with pending delivery accounted for.
+                            👉 Exact screenshot format matched for Pantree WhatsApp order with 10 AM–6 AM operational date & pending delivery accounted for.
                         </div>
                         <div class="order-list">${bunsOrderText}</div>
                         <a href="${bunsWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('buns')">Send Buns Order via WhatsApp</a>
@@ -1331,16 +1344,18 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                     return;
                 }
 
+                // 1 pkt = 2.5 kg; convert full pkts + open kg into total packets
                 let totalFriesKg = (friesPkt * 2.5) + friesKg;
                 let totalFriesPkts = totalFriesKg / 2.5;
 
+                // Fries target: base min on delivery day; on Thursday also include next day's min
                 let friesMinToday = getFriesMinForDay(deliveryDay);
                 let friesMinTomorrow = getFriesMinForDay((deliveryDay + 1) % 7);
                 let friesTarget = isThursday ? (friesMinToday + friesMinTomorrow) : friesMinToday;
 
                 let friesShortfall = friesTarget - totalFriesPkts;
+                // MOQ = 5 pkts (1 box)
                 let friesOrderQty = friesShortfall > 0 ? Math.ceil(friesShortfall / 5) * 5 : 0;
-                if (friesShortfall > 0 && friesOrderQty < 5) friesOrderQty = 5;
 
                 let wedgesPkt = parseFloat(document.getElementById('stock-wedges-pkt').value);
                 let wedgesKg = parseFloat(document.getElementById('stock-wedges-kg').value) || 0;
@@ -1354,12 +1369,14 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                 let totalWedgesKg = (wedgesPkt * 2.5) + wedgesKg;
                 let totalWedgesPkts = totalWedgesKg / 2.5;
 
+                // Wedges target: base min on delivery day; on Thursday also include next day's min
                 let wedgesMinToday = getWedgesMinForDay(deliveryDay);
                 let wedgesMinTomorrow = getWedgesMinForDay((deliveryDay + 1) % 7);
                 let wedgesTarget = isThursday ? (wedgesMinToday + wedgesMinTomorrow) : wedgesMinToday;
 
                 let wedgesShortfall = wedgesTarget - totalWedgesPkts;
-                let wedgesOrderQty = wedgesShortfall > 0 ? Math.max(Math.ceil(wedgesShortfall / 2) * 2, 2) : 0;
+                // MOQ = 2 pkts
+                let wedgesOrderQty = wedgesShortfall > 0 ? Math.ceil(wedgesShortfall / 2) * 2 : 0;
 
                 let friesOrderList = [];
                 if (friesOrderQty > 0) friesOrderList.push(`• Fries: *${friesOrderQty} pkts* (${friesOrderQty/5} box)`);
@@ -1369,6 +1386,9 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                     box.innerHTML = `
                         <div class="supplier-box" style="text-align:center; padding:20px;">
                             <h3>👍 Stock is sufficient for Fries & Wedges. No order needed today.</h3>
+                            <p style="font-size:0.85rem; color:#aaa;">
+                                Fries: ${totalFriesPkts.toFixed(2)} pkts avail vs ${friesTarget} pkts target | Wedges: ${totalWedgesPkts.toFixed(2)} pkts avail vs ${wedgesTarget} pkts target
+                            </p>
                             <button class="btn-primary-action" onclick="markSectionComplete('fries')">Go to Home Page</button>
                         </div>
                     `;
@@ -1380,8 +1400,8 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                         <div class="supplier-box">
                             <div class="supplier-title">🍟 Send Order to "TSG hyfun fries"</div>
                             <div class="instruction-text">
-                                👉 <strong>Fries:</strong> Available (${totalFriesPkts.toFixed(1)} pkts) -> Order: <strong>${friesOrderQty} pkts</strong>.<br>
-                                👉 <strong>Wedges:</strong> Available (${totalWedgesPkts.toFixed(1)} pkts) -> Order: <strong>${wedgesOrderQty} pkts</strong>.<br>
+                                👉 <strong>Fries:</strong> Avail ${totalFriesPkts.toFixed(2)} pkts (${totalFriesKg.toFixed(2)} kg) vs Target ${friesTarget} pkts -> Order: <strong>${friesOrderQty} pkts</strong>.<br>
+                                👉 <strong>Wedges:</strong> Avail ${totalWedgesPkts.toFixed(2)} pkts (${totalWedgesKg.toFixed(2)} kg) vs Target ${wedgesTarget} pkts -> Order: <strong>${wedgesOrderQty} pkts</strong>.<br>
                             </div>
                             <div class="order-list">${friesOrderText}</div>
                             <a href="${friesWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('fries')">Send Fries Order via WhatsApp</a>
