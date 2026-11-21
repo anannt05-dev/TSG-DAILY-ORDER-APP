@@ -538,17 +538,16 @@
         }
 
         // Dedicated Buns operational context:
-        // Operational hours run 10:00 AM to 6:00 AM next day.
-        // Between 00:00 and 05:59 AM, it is still the previous calendar day's closing window,
-        // so delivery date for tomorrow is (prevCalendarDay + 1).
-        // From 06:00 AM onwards, delivery date for tomorrow is (currentCalendarDay + 1).
+        // Operational hours run 10:00 AM to 6:00 AM next day (hrs < 6 belongs to previous calendar day's operational day).
+        // Because Buns orders run 1 day in advance (order placed during operational day D is accepted on D+1 and delivered on D+2),
+        // the delivery date printed in the order message is bunsOpDate + 2 days.
         function getBunsOperationalContext(baseDate = new Date()) {
             const hrs = baseDate.getHours();
             const bunsOpDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
             if (hrs < 6) {
                 bunsOpDate.setDate(bunsOpDate.getDate() - 1);
             }
-            const bunsDeliveryDate = new Date(bunsOpDate.getFullYear(), bunsOpDate.getMonth(), bunsOpDate.getDate() + 1);
+            const bunsDeliveryDate = new Date(bunsOpDate.getFullYear(), bunsOpDate.getMonth(), bunsOpDate.getDate() + 2);
             const d = bunsDeliveryDate.getDate().toString().padStart(2, '0');
             const m = (bunsDeliveryDate.getMonth() + 1).toString().padStart(2, '0');
             const y = bunsDeliveryDate.getFullYear().toString().slice(-2);
@@ -769,8 +768,10 @@
             // Buns Orders (Lokhandwala & Khar West with Pending Delivery)
             const bunsCont = document.getElementById('buns-inputs-list');
             const bunsCtx = getBunsOperationalContext(new Date());
-            let minToday = getSesameMinForDay(bunsCtx.bunsDeliveryDay);
-            let minTomorrow = getSesameMinForDay((bunsCtx.bunsDeliveryDay + 1) % 7);
+            const bunsFirstLookaheadDay = (bunsCtx.bunsOpDate.getDay() + 1) % 7;
+            const bunsSecondLookaheadDay = (bunsCtx.bunsOpDate.getDay() + 2) % 7;
+            let minToday = getSesameMinForDay(bunsFirstLookaheadDay);
+            let minTomorrow = getSesameMinForDay(bunsSecondLookaheadDay);
 
             bunsCont.innerHTML = `
                 <div class="item-card" style="border-left: 4px solid var(--primary);">
@@ -1293,15 +1294,16 @@
                 }
 
                 const bunsCtx = getBunsOperationalContext(new Date());
-                const bunsDelDay = bunsCtx.bunsDeliveryDay;
+                const bunsFirstLookaheadDay = (bunsCtx.bunsOpDate.getDay() + 1) % 7;
+                const bunsSecondLookaheadDay = (bunsCtx.bunsOpDate.getDay() + 2) % 7;
 
                 let totalSesameLokAvailable = sesameLok + pendingSesameLok;
                 let totalMultiLokAvailable = multiLok + pendingMultiLok;
                 let totalSesameKharAvailable = sesameKhar + pendingSesameKhar;
                 let totalMultiKharAvailable = multiKhar + pendingMultiKhar;
 
-                let minToday = getSesameMinForDay(bunsDelDay);
-                let minTomorrow = getSesameMinForDay((bunsDelDay + 1) % 7);
+                let minToday = getSesameMinForDay(bunsFirstLookaheadDay);
+                let minTomorrow = getSesameMinForDay(bunsSecondLookaheadDay);
                 let lokTwoDayMin = minToday + minTomorrow;
                 let kharTwoDayMin = lokTwoDayMin - 30;
 
