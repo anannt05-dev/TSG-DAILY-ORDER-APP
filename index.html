@@ -537,9 +537,17 @@
             return computeOperationalDate(baseDate).toDateString();
         }
 
-        // Dedicated Buns operational context (10 AM to 6 AM cutoff)
+        // Dedicated Buns operational context:
+        // Operational hours run 10:00 AM to 6:00 AM next day.
+        // Between 00:00 and 05:59 AM, it is still the previous calendar day's closing window,
+        // so delivery date for tomorrow is (prevCalendarDay + 1).
+        // From 06:00 AM onwards, delivery date for tomorrow is (currentCalendarDay + 1).
         function getBunsOperationalContext(baseDate = new Date()) {
-            const bunsOpDate = computeOperationalDate(baseDate);
+            const hrs = baseDate.getHours();
+            const bunsOpDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+            if (hrs < 6) {
+                bunsOpDate.setDate(bunsOpDate.getDate() - 1);
+            }
             const bunsDeliveryDate = new Date(bunsOpDate.getFullYear(), bunsOpDate.getMonth(), bunsOpDate.getDate() + 1);
             const d = bunsDeliveryDate.getDate().toString().padStart(2, '0');
             const m = (bunsDeliveryDate.getMonth() + 1).toString().padStart(2, '0');
@@ -1327,7 +1335,7 @@ Multigrain bun - ${kharMultiOrder > 0 ? kharMultiOrder : '00'}`;
                     <div class="supplier-box">
                         <div class="supplier-title">🍞 Send Order to Pantree / Buns Supplier</div>
                         <div class="instruction-text">
-                            👉 Exact screenshot format matched for Pantree WhatsApp order with 10 AM–6 AM operational date & pending delivery accounted for.
+                            👉 <strong>Kaise bhejein:</strong> "Send Buns Order via WhatsApp" par click karo, woh aapko WhatsApp pe le jayega. Wahan pe <strong>🍔🍔THE SERIAL GRILLER 🍔🥪</strong> group search karo aur message send kar do.
                         </div>
                         <div class="order-list">${bunsOrderText}</div>
                         <a href="${bunsWhatsappUrl}" class="btn-whatsapp" onclick="markSectionComplete('buns')">Send Buns Order via WhatsApp</a>
